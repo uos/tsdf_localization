@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+ <!-- <param name="robot_description" command="$(find xacro)/xacro.py '$(find ceres_description)/urdf/ceres.urdf.xacro'" /> -->
+ <param name="robot_description" command="$(find xacro)/xacro '$(find mcl)/simulation/urdf/ceres_velodyne.urdf.xacro'" />
+</launch>
