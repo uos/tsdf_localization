@@ -23,7 +23,7 @@ As an alternative, a launch file to setup the node for the HILTI SLAM Challenge 
 
 1. Clone the respository into your ROS workspace
 ```console
-$ git clone --recursive https://gitlab.informatik.uni-osnabrueck.de/meisoldt/fastfinder.git
+$ git clone --recursive https://github.com/uos/tsdf_localization.git
 ```
 2. Make shure have also installed the required external packages or also cloned them into the local ROS workspace
 
