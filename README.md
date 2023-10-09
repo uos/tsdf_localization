@@ -116,3 +116,10 @@ $ rosbag play <path-zo-hilti-bag-file>
 ```
 
 You can chance different parameters of the Monte Carlo Localization in the rqt window and restart the localization setting a new initial pose in RViz. If the global localization flag is set in the MCL launch file, the initial pose is only used as a trigger to distribute the particles uniformly in the environment of the robot.
+
+## Citation
+
+Please reference the following papers when using `tsdf_localization` in your scientific work.
+
+- Title: "Towards 6D MCL for LiDARs in 3D TSDF Maps on Embedded Systems with GPUs"
+- Preprint: https://arxiv.org/abs/2310.04172
