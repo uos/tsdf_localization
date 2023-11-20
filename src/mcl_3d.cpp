@@ -139,6 +139,8 @@ bool init_global_ = false;
 // Should the estimated poses of the algorithm be compared with the ground truth of the simulation?
 bool ground_truth_eval_ = false;
 
+bool print_runtime_stats_ = true;
+
 bool use_hilti_gt_ = false;
 bool hilti_calib_ = false;
 
@@ -459,7 +461,9 @@ void initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped& pose_wi
  * @param cloud Scan cloud to perform a sensor update based on the given TSDF map
  * @param odom Odometry estimation to perform a motion update
  */
-void scanOdomCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud, const nav_msgs::Odometry::ConstPtr& odom)
+void scanOdomCallback(
+  const sensor_msgs::PointCloud2::ConstPtr& cloud, 
+  const nav_msgs::Odometry::ConstPtr& odom)
 { 
   static tf2_ros::TransformBroadcaster broadcaster;
   static tf2_ros::Buffer tf_buffer;
@@ -719,7 +723,7 @@ void scanOdomCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud, const nav
     broadcaster.sendTransform(stamped_transform);
   }
 
-  if (!ground_truth_eval_)
+  if (!ground_truth_eval_ && print_runtime_stats_)
   {
     std::cout << eval.to_string() << std::endl;
   }
@@ -989,13 +993,13 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
     broadcaster.sendTransform(stamped_transform);
   }
 
-  if (!ground_truth_eval_)
+  if (!ground_truth_eval_ && print_runtime_stats_)
   {
     std::cout << eval.to_string() << std::endl;
   }
   else
   {
-
+    std::cout << "!!!!!!!!!!!!" << std::endl;
   }
 }
 
@@ -1047,6 +1051,7 @@ int main(int argc, char **argv)
   nh_p_->getParam("use_best_pose", use_best_pose_);
   nh_p_->getParam("use_gt_odom", use_gt_odom_);
   nh_p_->getParam("reduction_cell_size", reduction_cell_size_);
+  nh_p_->getParam("print_runtime_stats", print_runtime_stats_);
 
   
   geometry_msgs::Transform calib_pose;
@@ -1191,7 +1196,6 @@ int main(int argc, char **argv)
     time_output.open(gt_filename.str());
     time_output << best_diff_string.str() << "\n" << avg_diff_string.str();
     time_output.close();
-
   }
 
   tsdf_evaluator_ptr_.reset();

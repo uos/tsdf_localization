@@ -173,6 +173,13 @@ int main(int argc, char** argv)
     marker.action = visualization_msgs::Marker::MODIFY;
     marker.ns = "map";
     marker.id = 0;
+    marker.pose.position.x = 0.0; // TSDF chunk offsets could be easily applied here
+    marker.pose.position.y = 0.0;
+    marker.pose.position.z = 0.0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
     marker.scale.x = marker.scale.y = marker.scale.z = 0.8 * MAP_RESOLUTION * 0.001;
     marker.points = std::move(points);
     marker.colors = std::move(colors);
@@ -183,6 +190,13 @@ int main(int argc, char** argv)
     free_marker.action = visualization_msgs::Marker::MODIFY;
     free_marker.ns = "map";
     free_marker.id = 0;
+    free_marker.pose.position.x = 0.0; // TSDF chunk offsets could be easily applied here
+    free_marker.pose.position.y = 0.0;
+    free_marker.pose.position.z = 0.0;
+    free_marker.pose.orientation.x = 0.0;
+    free_marker.pose.orientation.y = 0.0;
+    free_marker.pose.orientation.z = 0.0;
+    free_marker.pose.orientation.w = 1.0;
     free_marker.scale.x = free_marker.scale.y = free_marker.scale.z = 0.8 * MAP_RESOLUTION * 0.001;
     free_marker.points = std::move(free_points);
     free_marker.colors = std::move(free_colors);
@@ -244,6 +258,13 @@ int main(int argc, char** argv)
     marker.action = visualization_msgs::Marker::MODIFY;
     marker.ns = "map";
     marker.id = 0;
+    marker.pose.position.x = 0.0; // TSDF chunk offsets could be easily applied here
+    marker.pose.position.y = 0.0;
+    marker.pose.position.z = 0.0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
     marker.scale.x = marker.scale.y = marker.scale.z = 1.0; //0.8 * MAP_RESOLUTION * 0.001;
     marker.points = std::move(points);
     marker.colors = std::move(colors);
@@ -253,12 +274,9 @@ int main(int argc, char** argv)
     marker.header.stamp = ros::Time::now(); 
 
     ros::Rate rate(10);
-
     while (ros::ok())
     {      
-
         ros::spinOnce();
-
         rate.sleep();
     }
 

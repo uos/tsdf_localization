@@ -36,6 +36,41 @@ Please reference the following papers when using `tsdf_localization` in your sci
 
 The paper is accepted to 2023 IEEE International Conference on Robotic Computing (IRC). The citation will be updated soon.
 
+## Nodes
+
+### mcl_3d
+
+Starts MCL in a given TSDF map.
+
+Subscribed Topics:
+
+`initialpose (geometry_msgs/PoseWithCovarianceStamped)`
+
+Initial pose guess can be provided using RViz.
+
+`velodyne_points (sensor_msgs/PointCloud2)` 
+
+PointCloud topic for sensor update. (TODO: more generic name)
+
+`odom (nav_msgs/Odometry)`
+
+Odometry message for motion update.
+
+(optional) `/imu/data (sensor_msgs/Imu)`
+
+
+
+
+**TODO: more docs here**
+
+
+
+
+
+
+
+
 ## Contributions
 
 We are happy about issues and pull requests or other feedback. Please let us know if something did not work out as expected.
+
