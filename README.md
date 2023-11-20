@@ -12,7 +12,7 @@ The sensor update is massively accelerated by a GPU-based implementation, but ca
 
 ## Installation
 
-1. Clone the respository into your ROS workspace
+1. Clone this repository into your ROS workspace
 ```console
 $ git clone --recursive https://github.com/uos/tsdf_localization.git
 ```
