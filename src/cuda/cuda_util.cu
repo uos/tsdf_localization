@@ -1,4 +1,4 @@
-#include <cuda/cuda_util.h>
+#include <tsdf_localization/cuda/cuda_util.h>
 
 #ifdef __CUDACC__
 

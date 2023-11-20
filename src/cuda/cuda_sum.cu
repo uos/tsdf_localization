@@ -1,8 +1,8 @@
-#include <cuda/cuda_sum.h>
+#include <tsdf_localization/cuda/cuda_sum.h>
 
 #include <cmath>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 __device__ void warpReduce(volatile FLOAT_T* sdata, unsigned int tid)
@@ -173,4 +173,4 @@ FLOAT_T weightSum(const FLOAT_T* data, size_t data_size)
 }
 
 
-}   // namespace mcl
+}   // namespace tsdf_localization

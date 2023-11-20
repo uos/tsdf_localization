@@ -23,9 +23,9 @@
 
 #include <boost/filesystem.hpp>
 
-#include <util/mcl_file.h>
+#include <tsdf_localization/util/mcl_file.h>
 
-using namespace mcl;
+using namespace tsdf_localization;
 
 int main(int argc, char** argv)
 {

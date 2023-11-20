@@ -1,21 +1,21 @@
-#include <cuda/cuda_evaluator.h>
+#include <tsdf_localization/cuda/cuda_evaluator.h>
 #include <stdio.h>
 
-#include <cuda/cuda_util.h>
+#include <tsdf_localization/cuda/cuda_util.h>
 
 #include <sensor_msgs/point_cloud2_iterator.h>
 
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <util/runtime_evaluator.h>
+#include <tsdf_localization/util/runtime_evaluator.h>
 #include <map>
 
-#include <cuda/cuda_data.h>
-#include <cuda/cuda_eval_particles.h>
-#include <cuda/cuda_sum.h>
+#include <tsdf_localization/cuda/cuda_data.h>
+#include <tsdf_localization/cuda/cuda_eval_particles.h>
+#include <tsdf_localization/cuda/cuda_sum.h>
 
-namespace mcl 
+namespace tsdf_localization 
 {
 
 CudaEvaluator::CudaEvaluator(CudaSubVoxelMap<FLOAT_T, FLOAT_T>& map, bool per_point, FLOAT_T a_hit, FLOAT_T a_range, FLOAT_T a_max, FLOAT_T max_range) : 
@@ -568,4 +568,4 @@ CudaEvaluator::~CudaEvaluator()
   }
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

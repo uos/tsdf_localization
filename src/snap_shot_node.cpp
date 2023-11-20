@@ -30,7 +30,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <mcl/MCLConfig.h>
+#include <tsdf_localization/MCLConfig.h>
 
 #include <random>
 #include <cmath>
@@ -38,27 +38,27 @@
 #include <array>
 #include <utility>
 
-#include <particle_cloud.h>
-#include <evaluation/model/naiv_evaluation.h>
-#include <evaluation/model/likelihood_evaluation.h>
-#include <evaluation/model/omp_likelihood_evaluation.h>
+#include <tsdf_localization/particle_cloud.h>
+#include <tsdf_localization/evaluation/model/naiv_evaluation.h>
+#include <tsdf_localization/evaluation/model/likelihood_evaluation.h>
+#include <tsdf_localization/evaluation/model/omp_likelihood_evaluation.h>
 
-#include <map/hash_grid_map.h>
-#include <map/sub_voxel_map.h>
+#include <tsdf_localization/map/hash_grid_map.h>
+#include <tsdf_localization/map/sub_voxel_map.h>
 
-#include <util/runtime_evaluator.h>
+#include <tsdf_localization/util/runtime_evaluator.h>
 
-#include <map/map_util.h>
-#include <util/util.h>
+#include <tsdf_localization/map/map_util.h>
+#include <tsdf_localization/util/util.h>
 
-#include <util/mcl_file.h>
+#include <tsdf_localization/util/mcl_file.h>
 
 #include <iostream>
 #include <string>
 
 #include <boost/filesystem.hpp>
 
-using namespace mcl;
+using namespace tsdf_localization;
 
 std::vector<CudaPoint> free_map_;
 
@@ -88,7 +88,7 @@ std::string map_frame_;
 
 std::string save_dir = "mcl_snapshots/";
 
-void responseCallback(mcl::MCLConfig& config, uint32_t level)
+void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
 {
   number_particles_ = config.number_of_particles;
   
@@ -218,8 +218,8 @@ int main(int argc, char** argv)
     auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(argv[1], free_map_);
     std::cout << "Loaded free map" << std::endl;
 
-    dynamic_reconfigure::Server<mcl::MCLConfig> server;
-    dynamic_reconfigure::Server<mcl::MCLConfig>::CallbackType callbackType;
+    dynamic_reconfigure::Server<tsdf_localization::MCLConfig> server;
+    dynamic_reconfigure::Server<tsdf_localization::MCLConfig>::CallbackType callbackType;
 
     callbackType = boost::bind(&responseCallback, _1, _2);
     server.setCallback(callbackType);

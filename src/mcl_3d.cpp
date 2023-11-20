@@ -30,7 +30,7 @@
 #include <nav_msgs/Path.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <mcl/MCLConfig.h>
+#include <tsdf_localization/MCLConfig.h>
 
 #include <random>
 #include <cmath>
@@ -39,26 +39,26 @@
 #include <utility>
 #include <fstream>
 
-#include <particle_cloud.h>
-#include <evaluation/model/naiv_evaluation.h>
-#include <evaluation/model/likelihood_evaluation.h>
-#include <evaluation/model/omp_likelihood_evaluation.h>
+#include <tsdf_localization/particle_cloud.h>
+#include <tsdf_localization/evaluation/model/naiv_evaluation.h>
+#include <tsdf_localization/evaluation/model/likelihood_evaluation.h>
+#include <tsdf_localization/evaluation/model/omp_likelihood_evaluation.h>
 
-#include <resampling/wheel_resampler.h>
-#include <resampling/novel_resampling.h>
+#include <tsdf_localization/resampling/wheel_resampler.h>
+#include <tsdf_localization/resampling/novel_resampling.h>
 
-#include <evaluation/tsdf_evaluator.h>
-#include <map/hash_grid_map.h>
-#include <cuda/cuda_sub_voxel_map.h>
+#include <tsdf_localization/evaluation/tsdf_evaluator.h>
+#include <tsdf_localization/map/hash_grid_map.h>
+#include <tsdf_localization/cuda/cuda_sub_voxel_map.h>
 
-#include <util/runtime_evaluator.h>
+#include <tsdf_localization/util/runtime_evaluator.h>
 
-#include <map/map_util.h>
-#include <util/util.h>
+#include <tsdf_localization/map/map_util.h>
+#include <tsdf_localization/util/util.h>
 
-#include <util/imu_accumulator.h>
+#include <tsdf_localization/util/imu_accumulator.h>
 
-using namespace mcl;
+using namespace tsdf_localization;
 
 // IMU accumulator to merge IMU measurents until a new motion update should be performed
 ImuAccumulator imu_acc_;
@@ -222,7 +222,7 @@ struct MyPoint
 /**
  * @brief Loading of the dynamic reconfigure parameters 
  */
-void responseCallback(mcl::MCLConfig& config, uint32_t level)
+void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
 {
   number_particles_ = config.number_of_particles;
   
@@ -1108,8 +1108,8 @@ int main(int argc, char **argv)
   
   ss_stamp << "stamp:\n";
 
-  dynamic_reconfigure::Server<mcl::MCLConfig> server;
-  dynamic_reconfigure::Server<mcl::MCLConfig>::CallbackType callbackType;
+  dynamic_reconfigure::Server<tsdf_localization::MCLConfig> server;
+  dynamic_reconfigure::Server<tsdf_localization::MCLConfig>::CallbackType callbackType;
 
   callbackType = boost::bind(&responseCallback, _1, _2);
   server.setCallback(callbackType);

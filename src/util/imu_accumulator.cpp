@@ -1,6 +1,6 @@
-#include <util/imu_accumulator.h>
+#include <tsdf_localization/util/imu_accumulator.h>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 void bound_angle(FLOAT_T& angle)
@@ -15,4 +15,4 @@ void bound_angle(FLOAT_T& angle)
     }
 }
 
-} // namespace mcl 
+} // namespace tsdf_localization 

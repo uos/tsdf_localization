@@ -1,4 +1,4 @@
-#include <evaluation/tsdf_evaluator.h>
+#include <tsdf_localization/evaluation/tsdf_evaluator.h>
 
 #include <sensor_msgs/point_cloud2_iterator.h>
 
@@ -9,15 +9,15 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 
-#include <evaluation/model/evaluation_model.h>
+#include <tsdf_localization/evaluation/model/evaluation_model.h>
 
-#include <evaluation/model/likelihood_evaluation.h>
+#include <tsdf_localization/evaluation/model/likelihood_evaluation.h>
 
-#include <util/constant.h>
+#include <tsdf_localization/util/constant.h>
 
 #include <omp.h>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 static int avg_reuse = 0;
@@ -378,4 +378,4 @@ geometry_msgs::PoseWithCovariance TSDFEvaluator::evaluateParticles(ParticleCloud
 return evaluate(particle_cloud.particles(), ordered_points, tf_matrix, use_cuda);
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

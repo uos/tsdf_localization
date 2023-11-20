@@ -1,11 +1,11 @@
-#include <evaluation/model/omp_likelihood_evaluation.h>
+#include <tsdf_localization/evaluation/model/omp_likelihood_evaluation.h>
 
 #include <omp.h>
 
 #include <cmath>
 #include <iostream>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 OMPLikelihoodEvaluation::OMPLikelihoodEvaluation(FLOAT_T range_max) : m_range_max_(range_max)
@@ -43,4 +43,4 @@ void OMPLikelihoodEvaluation::reset()
   m_sum_[omp_get_thread_num()] = 0;
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

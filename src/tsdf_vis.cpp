@@ -21,14 +21,14 @@
 
 #include <vector>
 
-#include <util/tsdf.h>
-#include <map/grid_map.h>
+#include <tsdf_localization/util/tsdf.h>
+#include <tsdf_localization/map/grid_map.h>
 #include <pwd.h>
 
-#include <map/sub_voxel_map.h>
-#include <map/map_util.h>
+#include <tsdf_localization/map/sub_voxel_map.h>
+#include <tsdf_localization/map/map_util.h>
 
-using namespace mcl;
+using namespace tsdf_localization;
 
 std::string map_file_name = "ros_ws/tsdf_maps/sim_map.h5";
 

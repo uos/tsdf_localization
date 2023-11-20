@@ -1,8 +1,8 @@
-#include <evaluation/model/naiv_evaluation.h>
+#include <tsdf_localization/evaluation/model/naiv_evaluation.h>
 
 #include <cmath>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 NaivEvaluation::NaivEvaluation() : m_error(0.0)
@@ -31,4 +31,4 @@ void NaivEvaluation::reset()
   m_error = 0.0;
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

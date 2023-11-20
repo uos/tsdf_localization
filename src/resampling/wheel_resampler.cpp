@@ -1,6 +1,6 @@
-#include <resampling/wheel_resampler.h>
+#include <tsdf_localization/resampling/wheel_resampler.h>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 void WheelResampler::resample(ParticleCloud& particle_cloud)
@@ -33,4 +33,4 @@ void WheelResampler::resample(ParticleCloud& particle_cloud)
 
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

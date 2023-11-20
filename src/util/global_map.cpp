@@ -6,7 +6,7 @@
 
 #include <sstream>
 
-#include <util/global_map.h>
+#include <tsdf_localization/util/global_map.h>
 
 GlobalMap::GlobalMap(std::string name, TSDFValue::ValueType initial_tsdf_value, TSDFValue::WeightType initial_weight)
     : file_{name, HighFive::File::OpenOrCreate | HighFive::File::Truncate}, // Truncate clears already existing file

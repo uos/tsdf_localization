@@ -1,4 +1,4 @@
-#include <util/util.h>
+#include <tsdf_localization/util/util.h>
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -10,7 +10,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 FLOAT_T getYawFromQuaternion(const geometry_msgs::Quaternion& quaternion)
@@ -110,4 +110,4 @@ void getAngleFromMat(const FLOAT_T mat[16], FLOAT_T& roll,  FLOAT_T& pitch,  FLO
     }
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

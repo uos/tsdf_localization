@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(mcl)
+project(tsdf_localization 
+        VERSION 1.0.0)
+
+# RELEASE PER DEFAULT
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
+  if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+  endif()
+endif()
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-#add_compile_options(-std=c++17)
+add_compile_options(-std=c++17)
+set(CMAKE_CXX_STANDARD 17)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -38,14 +47,6 @@ find_package(Boost REQUIRED COMPONENTS filesystem)
 
 find_package(FLANN)
 
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
-  if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-  endif()
-endif()
-
-set(CMAKE_CXX_STANDARD 17)
-
 # dynamic reconfigure
 generate_dynamic_reconfigure_options(
     cfg/MCL.cfg
@@ -80,7 +81,18 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-set(SRC src/particle_cloud.cpp src/util/util.cpp src/evaluation/model/naiv_evaluation.cpp src/evaluation/model/likelihood_evaluation.cpp src/evaluation/model/omp_likelihood_evaluation.cpp src/resampling/wheel_resampler.cpp src/evaluation/tsdf_evaluator.cpp src/util/runtime_evaluator.cpp src/util/imu_accumulator.cpp)
+# TODO: CHANGE NAME
+set(SRC 
+  src/particle_cloud.cpp 
+  src/util/util.cpp 
+  src/evaluation/model/naiv_evaluation.cpp 
+  src/evaluation/model/likelihood_evaluation.cpp 
+  src/evaluation/model/omp_likelihood_evaluation.cpp 
+  src/resampling/wheel_resampler.cpp 
+  src/evaluation/tsdf_evaluator.cpp 
+  src/util/runtime_evaluator.cpp 
+  src/util/imu_accumulator.cpp
+)
 
 # External interface for HDF5 (libhdf5) HighFive (https://github.com/BlueBrain/HighFive).
 set(HIGHFIVE_EXAMPLES FALSE CACHE INTERNAL "")
@@ -209,6 +221,5 @@ target_link_libraries(snap_vis_node
     ${HDF5_HL_LIBRARIES}
     Eigen3::Eigen
 )
-
 
 endif (CUDA_FOUND)

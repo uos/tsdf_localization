@@ -2,13 +2,13 @@
 
 //#include <boost/filesystem.hpp>
 
-#include <cuda/cuda_evaluator.h>
-#include <util/mcl_file.h>
-#include <map/map_util.h>
+#include <tsdf_localization/cuda/cuda_evaluator.h>
+#include <tsdf_localization/util/mcl_file.h>
+#include <tsdf_localization/map/map_util.h>
 
-#include <cuda/cuda_sub_voxel_map.h>
+#include <tsdf_localization/cuda/cuda_sub_voxel_map.h>
 
-using namespace mcl;
+using namespace tsdf_localization;
 
 int main(int argc, char** argv)
 {

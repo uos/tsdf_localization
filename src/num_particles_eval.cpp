@@ -13,17 +13,16 @@
 #include <iostream>
 #include <fstream>
 
-//#include <boost/filesystem.hpp>
 
-#include <evaluation/tsdf_evaluator.h>
-#include <util/mcl_file.h>
-#include <map/map_util.h>
+#include <tsdf_localization/evaluation/tsdf_evaluator.h>
+#include <tsdf_localization/util/mcl_file.h>
+#include <tsdf_localization/map/map_util.h>
 
-#include <cuda/cuda_sub_voxel_map.h>
+#include <tsdf_localization/cuda/cuda_sub_voxel_map.h>
 
-#include <util/runtime_evaluator.h>
+#include <tsdf_localization/util/runtime_evaluator.h>
 
-using namespace mcl;
+using namespace tsdf_localization;
 
 std::shared_ptr<ros::NodeHandle> nh_p_;
 

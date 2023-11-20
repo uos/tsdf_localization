@@ -1,11 +1,11 @@
-#include <particle_cloud.h>
+#include <tsdf_localization/particle_cloud.h>
 
 #include <exception>
 #include <iostream>
 
 #include <tf2/LinearMath/Matrix3x3.h>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 ParticleCloud::ParticleCloud()
@@ -660,4 +660,4 @@ const Particle& ParticleCloud::getRandomParticle() const
   return m_particles[m_particles.size() - 1];
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

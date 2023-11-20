@@ -1,9 +1,9 @@
-#include <evaluation/model/likelihood_evaluation.h>
+#include <tsdf_localization/evaluation/model/likelihood_evaluation.h>
 
 #include <cmath>
 #include <iostream>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 LikelihoodEvaluation::LikelihoodEvaluation(FLOAT_T range_max) : m_sum(0.0), m_range_max(range_max)
@@ -43,4 +43,4 @@ void LikelihoodEvaluation::reset()
   m_sum = 0.0;
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

@@ -1,9 +1,9 @@
-#include <util/mcl_file.h>
+#include <tsdf_localization/util/mcl_file.h>
 #include <utility>
 #include <fstream> 
 #include <sstream>
 
-namespace mcl
+namespace tsdf_localization
 {
 
 MCLFile::MCLFile(const std::string& file_name) : name_(file_name)
@@ -112,4 +112,4 @@ void MCLFile::read(std::vector<CudaPoint>& points, std::vector<int>& rings, std:
     }
 }
 
-} // namespace mcl
+} // namespace tsdf_localization

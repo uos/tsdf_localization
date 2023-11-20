@@ -4,7 +4,7 @@
  * @author Steffen Hinderink
  */
 
-#include <util/runtime_evaluator.h>
+#include <tsdf_localization/util/runtime_evaluator.h>
 
 #include <sstream> // for output
 #include <iomanip> // for formatting
@@ -12,7 +12,7 @@
 
 using namespace std::chrono;
 
-namespace mcl
+namespace tsdf_localization
 {
 
 RuntimeEvaluator& RuntimeEvaluator::get_instance()
@@ -266,4 +266,4 @@ std::ostream& operator<<(std::ostream& os, RuntimeEvaluator& evaluator)
     return os;
 }
 
-} // namespace mcl
+} // namespace tsdf_localization
