@@ -1,7 +1,7 @@
 <launch>
 
-    <node name="int_mcl" type="int_mcl_3d" pkg="mcl" output="screen">
-        <param name="map_file" type="str" value="$(find mcl)/../../../tsdf_maps/ground_truth_map_2.h5" />
-    </node>
+<node name="int_mcl" type="int_mcl_3d" pkg="tsdf_localization" output="screen">
+    <param name="map_file" type="str" value="$(find tsdf_localization)/../../../tsdf_maps/ground_truth_map_2.h5" />
+</node>
 
 </launch>

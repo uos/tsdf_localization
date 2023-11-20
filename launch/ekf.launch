@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf" output="screen">
+<node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf" output="screen">
     <param name="freq" value="100.0"/>
     <param name="sensor_timeout" value="1.0"/>
     <param name="publish_tf" value="true"/>
@@ -10,5 +10,5 @@
     <remap from="imu_data" to="/os_cloud_node/imu"/>
     <param name="output_frame" value="odom"/>
     <param name="base_footprint_frame" value="os_imu"/>
-  </node>
+</node>
 </launch>

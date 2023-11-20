@@ -1,16 +1,16 @@
 <launch>
 
-    <arg name="args" default="$(find mcl)/../../../mcl_snapshots/mcl_10000__0_5__normal.mcl $(find mcl)/../../../tsdf_maps/avz_map.h5"/>
+<arg name="args" default="$(find tsdf_localization)/../../../mcl_snapshots/mcl_10000__0_5__normal.mcl $(find tsdf_localization)/../../../tsdf_maps/avz_map.h5"/>
 
-    <node name="cache_eval" type="cache_eval" pkg="mcl" output="screen" args="$(arg args)">
-        <!-- <param name="map_file" type="str" value="$(find mcl)/../../../tsdf_maps/avz_map.h5" /> -->
-        <param name="num_particles" type="int" value="100000" />
-        <param name="inc" type="double" value="0.1" />
-        <param name="repeat" type="int" value="10" />
-        <param name="sigma_trans" type="double" value="7.0" />
-        <param name="sigma_rot" type="double" value="0.01" />
-        <param name="use_cuda" type="bool" value="true" />
-        <param name="per_point" type="bool" value="false" />
-    </node>
+<node name="cache_eval" type="cache_eval" pkg="tsdf_localization" output="screen" args="$(arg args)">
+    <!-- <param name="map_file" type="str" value="$(find tsdf_localization)/../../../tsdf_maps/avz_map.h5" /> -->
+    <param name="num_particles" type="int" value="100000" />
+    <param name="inc" type="double" value="0.1" />
+    <param name="repeat" type="int" value="10" />
+    <param name="sigma_trans" type="double" value="7.0" />
+    <param name="sigma_rot" type="double" value="0.01" />
+    <param name="use_cuda" type="bool" value="true" />
+    <param name="per_point" type="bool" value="false" />
+</node>
 
 </launch>

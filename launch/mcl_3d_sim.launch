@@ -1,74 +1,73 @@
 <launch>
 
-    <node name="mcl_3d" type="mcl_3d" pkg="mcl" output="screen">
-        <!-- <param name="map_file" type="str" value="$(find mcl)/../../../tsdf_maps/ground_truth_map_2.h5"/> -->
-        
-        <!-- <param name="map_file" type="str" value="$(find mcl)/../../../../maps/hilti.h5"/> --> 
+<node name="mcl_3d" type="mcl_3d" pkg="tsdf_localization" output="screen">
+    <!-- <param name="map_file" type="str" value="$(find tsdf_localization)/../../../tsdf_maps/ground_truth_map_2.h5"/> -->
+    
+    <!-- <param name="map_file" type="str" value="$(find tsdf_localization)/../../../../maps/hilti.h5"/> --> 
 
-        <!-- <param name="map_file" type="str" value="$(find mcl)/../../../tsdf_maps/hilti_better.h5"/> -->
+    <!-- <param name="map_file" type="str" value="$(find tsdf_localization)/../../../tsdf_maps/hilti_better.h5"/> -->
 
-        <!-- <param name="map_file" type="str" value="$(find mcl)/../../../tsdf_maps/LAB_Survey_2_gt.h5"/> -->
+    <!-- <param name="map_file" type="str" value="$(find tsdf_localization)/../../../tsdf_maps/LAB_Survey_2_gt.h5"/> -->
 
-        <param name="map_file" type="str" value="$(find mcl)/../../../tsdf_maps/ground_truth_map_2.h5"/>
+    <param name="map_file" type="str" value="$(find tsdf_localization)/../../../tsdf_maps/ground_truth_map_2.h5"/>
 
-        
-        <!-- GT calibartion pose -->
+    <!-- GT calibartion pose -->
 
-        <!-- <param name="p_x" type="double" value="3.10815"/>
-        <param name="p_y" type="double" value="-0.436682"/>
-        <param name="p_z" type="double" value="1.58864"/>
+    <!-- <param name="p_x" type="double" value="3.10815"/>
+    <param name="p_y" type="double" value="-0.436682"/>
+    <param name="p_z" type="double" value="1.58864"/>
 
-        <param name="q_x" type="double" value="0.0231714"/>
-        <param name="q_y" type="double" value="-0.0430613"/>
-        <param name="q_z" type="double" value="0.998563"/>
-        <param name="q_w" type="double" value="-0.0219391"/> -->
+    <param name="q_x" type="double" value="0.0231714"/>
+    <param name="q_y" type="double" value="-0.0430613"/>
+    <param name="q_z" type="double" value="0.998563"/>
+    <param name="q_w" type="double" value="-0.0219391"/> -->
 
-        <!-- HILTI: Drone-Testing-Area -->
-        <!-- <param name="p_x" type="double" value="-5.82412"/>
-        <param name="p_y" type="double" value="3.79671"/>
-        <param name="p_z" type="double" value="1.55392"/>
+    <!-- HILTI: Drone-Testing-Area -->
+    <!-- <param name="p_x" type="double" value="-5.82412"/>
+    <param name="p_y" type="double" value="3.79671"/>
+    <param name="p_z" type="double" value="1.55392"/>
 
-        <param name="q_x" type="double" value="0.0254594"/>
-        <param name="q_y" type="double" value="-0.00898611"/>
-        <param name="q_z" type="double" value="-0.999595"/>
-        <param name="q_w" type="double" value="-0.00903255"/> -->
+    <param name="q_x" type="double" value="0.0254594"/>
+    <param name="q_y" type="double" value="-0.00898611"/>
+    <param name="q_z" type="double" value="-0.999595"/>
+    <param name="q_w" type="double" value="-0.00903255"/> -->
 
-        <!-- HILTI: Lab -->
-        <!-- <param name="p_x" type="double" value="0.147862"/>
-        <param name="p_y" type="double" value="1.63164"/>
-        <param name="p_z" type="double" value="1.53452"/>
+    <!-- HILTI: Lab -->
+    <!-- <param name="p_x" type="double" value="0.147862"/>
+    <param name="p_y" type="double" value="1.63164"/>
+    <param name="p_z" type="double" value="1.53452"/>
 
-        <param name="q_x" type="double" value="-0.00752009"/>
-        <param name="q_y" type="double" value="-0.00417909"/>
-        <param name="q_z" type="double" value="0.718358"/>
-        <param name="q_w" type="double" value="0.69562"/>-->
-
-
-        <!-- <param name="p_x" type="double" value="-5.82412"/>
-        <param name="p_y" type="double" value="3.79671"/>
-        <param name="p_z" type="double" value="1.55392"/>
-
-        <param name="q_x" type="double" value="0.0254594"/>
-        <param name="q_y" type="double" value="-0.00898611"/>
-        <param name="q_z" type="double" value="-0.999595"/>
-        <param name="q_w" type="double" value="-0.00903255"/>- -->
+    <param name="q_x" type="double" value="-0.00752009"/>
+    <param name="q_y" type="double" value="-0.00417909"/>
+    <param name="q_z" type="double" value="0.718358"/>
+    <param name="q_w" type="double" value="0.69562"/>-->
 
 
-        
-        <param name="use_best_pose" type="bool" value="false" />
-        <param name="per_point" type="bool" value="false" />
-        <param name="init_global" type="bool" value="true"/>
-        <param name="ground_truth_eval" type="bool" value="false"/>
-        <param name="use_hilti_gt" type="bool" value="true"/>
-        <param name="sigma" type="double" value="0.5"/> <!-- 0.000001 -->
-        <param name="a_hit" type="double" value="0.8"/>
-        <param name="a_rand" type="double" value="0.2"/>
-        <param name="a_max" type="double" value="0.0"/>
-        <param name="range_max" type="double" value="1000.0"/>
-        <param name="use_imu" type="bool" value="false"/>
-        <param name="use_gt_odom" type="bool" value="false"/>
-        <param name="use_os" type="bool" value="false"/>
-        <param name="ignore_motion" type="bool" value="false"/>
-    </node>
+    <!-- <param name="p_x" type="double" value="-5.82412"/>
+    <param name="p_y" type="double" value="3.79671"/>
+    <param name="p_z" type="double" value="1.55392"/>
+
+    <param name="q_x" type="double" value="0.0254594"/>
+    <param name="q_y" type="double" value="-0.00898611"/>
+    <param name="q_z" type="double" value="-0.999595"/>
+    <param name="q_w" type="double" value="-0.00903255"/>- -->
+
+
+    
+    <param name="use_best_pose" type="bool" value="false" />
+    <param name="per_point" type="bool" value="false" />
+    <param name="init_global" type="bool" value="true"/>
+    <param name="ground_truth_eval" type="bool" value="false"/>
+    <param name="use_hilti_gt" type="bool" value="true"/>
+    <param name="sigma" type="double" value="0.5"/> <!-- 0.000001 -->
+    <param name="a_hit" type="double" value="0.8"/>
+    <param name="a_rand" type="double" value="0.2"/>
+    <param name="a_max" type="double" value="0.0"/>
+    <param name="range_max" type="double" value="1000.0"/>
+    <param name="use_imu" type="bool" value="false"/>
+    <param name="use_gt_odom" type="bool" value="false"/>
+    <param name="use_os" type="bool" value="false"/>
+    <param name="ignore_motion" type="bool" value="false"/>
+</node>
 
 </launch>
