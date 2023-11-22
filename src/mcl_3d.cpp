@@ -29,6 +29,8 @@
 
 #include <nav_msgs/Path.h>
 
+#include <std_srvs/Empty.h>
+
 #include <dynamic_reconfigure/server.h>
 #include <tsdf_localization/MCLConfig.h>
 
@@ -71,6 +73,9 @@ geometry_msgs::Pose initial_pose_;
 
 // Was a new initial pose estimation received? 
 bool pose_initialized_ = false;
+
+// Trigger the global localization procedure
+bool global_initialized_ = false;
 
 // Was the particle cloud in the current MCL iteration already evaluated by the sensor update?
 bool evaluated_ = false;
@@ -261,6 +266,7 @@ void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
 
   evaluation_model_ = config.evaluation_model;
 
+  // TODO: do these things change? I would propose to move them to classic parameter to easier set them via config files
   robot_frame_ = config.robot_frame;
   scan_frame_ =  config.scan_frame;
   odom_frame_ = config.odom_frame;
@@ -455,6 +461,16 @@ void initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped& pose_wi
   ROS_INFO_STREAM("Initial pose received!");
 }
 
+bool globalLocalizationCallback(
+  std_srvs::Empty::Request& req,
+  std_srvs::Empty::Response& res)
+{
+  global_initialized_ = true;
+
+  ROS_INFO_STREAM("Global localization triggered!");
+  return true;
+}
+
 /**
  * @brief Main callcack for the MCL algorithm to perform the initialization of the particle cloud, the motion update, the sensor update and the resampling based on the received data
  * 
@@ -473,22 +489,20 @@ void scanOdomCallback(
 
   /*** A priori ***/
 
-  // Init particles
-  if(!particle_cloud_.isInitialized() || pose_initialized_)
+  if(!particle_cloud_.isInitialized() || pose_initialized_ || global_initialized_)
   {
     eval.start("init");
-    
-    if (init_global_)
+    if(!particle_cloud_.isInitialized() || global_initialized_)
     {
+      std::cout << "Execute global particle initialization..." << std::endl;
       particle_cloud_.initialize(number_particles_, free_map_, initial_pose_);
-    }
-    else
-    {
+      global_initialized_ = false;
+    } else if(pose_initialized_) {
+      std::cout << "Execute local particle initialization..." << std::endl;
       particle_cloud_.initialize(initial_pose_, number_particles_, init_sigma_x_, init_sigma_y_, init_sigma_z_, init_sigma_roll_, init_sigma_pitch_, init_sigma_yaw_);
+      pose_initialized_ = false;
     }
-
     eval.stop("init");
-    pose_initialized_ = false;
   }
   // Resample particles
   else
@@ -744,23 +758,20 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
   /*** A priori ***/
 
   // Init particles
-  if(!particle_cloud_.isInitialized() || pose_initialized_)
+  if(!particle_cloud_.isInitialized() || pose_initialized_ || global_initialized_)
   {
     eval.start("init");
-    
-    if (init_global_)
+    if(!particle_cloud_.isInitialized() || global_initialized_)
     {
       std::cout << "Execute global particle initialization..." << std::endl;
       particle_cloud_.initialize(number_particles_, free_map_, initial_pose_);
-    }
-    else
-    {
+      global_initialized_ = false;
+    } else if(pose_initialized_) {
       std::cout << "Execute local particle initialization..." << std::endl;
       particle_cloud_.initialize(initial_pose_, number_particles_, init_sigma_x_, init_sigma_y_, init_sigma_z_, init_sigma_roll_, init_sigma_pitch_, init_sigma_yaw_);
+      pose_initialized_ = false;
     }
-
     eval.stop("init");
-    pose_initialized_ = false;
   }
   // Resample particles
   else
@@ -999,7 +1010,7 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
   }
   else
   {
-    std::cout << "!!!!!!!!!!!!" << std::endl;
+    
   }
 }
 
@@ -1094,6 +1105,7 @@ int main(int argc, char **argv)
     std::cout << "Not using any sensor for motion update..." << std::endl;
   }
 
+  // TODO: use one unique topic and do remapping in launch files
   if (use_os_)
   {
     cloud_topic = "/os_cloud_node/points";
@@ -1119,11 +1131,14 @@ int main(int argc, char **argv)
   callbackType = boost::bind(&responseCallback, _1, _2);
   server.setCallback(callbackType);
 
+ 
+
   // Meaningfull initialization
   initial_pose_.orientation.w = 1.0;
 
   // Initialize subscribers
   ros::Subscriber sub_initial_pose = n.subscribe("initialpose", 1, initialPoseCallback);
+  ros::ServiceServer serv_global_loc = n.advertiseService("global_localization", globalLocalizationCallback);
 
   ros::Subscriber sub_ground_truth; 
   

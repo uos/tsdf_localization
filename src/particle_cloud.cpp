@@ -287,7 +287,7 @@ void ParticleCloud::motionUpdate(const nav_msgs::Odometry& odom)
     tf_particle[11] = 0;
 
     
-
+    
     FLOAT_T tf[16];
 
     tf[0] = tf_particle[0] * tf_odom[0] + tf_particle[1] * tf_odom[4] + tf_particle[2] * tf_odom[8];
