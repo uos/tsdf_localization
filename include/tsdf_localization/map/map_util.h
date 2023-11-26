@@ -17,7 +17,7 @@ namespace tsdf_localization
 template <typename MapT, typename IndexT, typename DataT>
 std::shared_ptr<MapT> createTSDFMap(std::string h5_filename, std::vector<CudaPoint>& free_map, FLOAT_T sigma = 0.1)
 {
-    HighFive::File f(h5_filename, HighFive::File::ReadOnly); // TODO: Path and name as command line input
+    HighFive::File f(h5_filename, HighFive::File::ReadOnly);
     HighFive::Group g = f.getGroup("/map");
 
     std::vector<FLOAT_T> min(3, 0); 
@@ -156,7 +156,7 @@ std::shared_ptr<MapT> createTSDFMap(std::string h5_filename, std::vector<CudaPoi
 template <typename MapT, typename IndexT, typename DataT>
 std::shared_ptr<MapT> createIntTSDFMap(std::string h5_filename)
 {
-    HighFive::File f(h5_filename, HighFive::File::ReadOnly); // TODO: Path and name as command line input
+    HighFive::File f(h5_filename, HighFive::File::ReadOnly);
     HighFive::Group g = f.getGroup("/map");
 
     std::vector<int_tsdf_localization::FIXED_T> min(3, 0); 

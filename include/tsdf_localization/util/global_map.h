@@ -17,8 +17,6 @@
 #include <eigen3/Eigen/Dense>
 using Eigen::Vector3i;
 
-// TODO: (maybe) handle existing/missing folder, where hdf5 will write
-
 struct ActiveChunk
 {
     std::vector<TSDFValue::RawType> data;

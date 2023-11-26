@@ -81,8 +81,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# TODO: CHANGE NAME
-set(SRC 
+set(TSDF_LOC_SRC 
   src/particle_cloud.cpp 
   src/util/util.cpp 
   src/evaluation/model/naiv_evaluation.cpp 
@@ -134,7 +133,7 @@ endif(CUDA_FOUND)
 
 ### ROS nodes
 
-add_executable(mcl_3d src/mcl_3d.cpp ${SRC})
+add_executable(mcl_3d src/mcl_3d.cpp ${TSDF_LOC_SRC})
 
 if (CUDA_FOUND)
 
@@ -158,7 +157,7 @@ target_link_libraries(mcl_3d
     Eigen3::Eigen
 )
 
-add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${SRC})
+add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
 
 if (CUDA_FOUND)
 
@@ -194,7 +193,7 @@ MAKE_NODE(tsdf_vis src/tsdf_vis.cpp)
 
 if (CUDA_FOUND)
 
-add_executable(snap_shot_node src/snap_shot_node.cpp src/util/mcl_file.cpp ${SRC})
+add_executable(snap_shot_node src/snap_shot_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
 add_dependencies(snap_shot_node ${PROJECT_NAME}_gencfg CUDAEvaluator)
 target_link_libraries(snap_shot_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} CUDAEvaluator)
 
@@ -208,7 +207,7 @@ target_link_libraries(snap_shot_node
     Eigen3::Eigen
 )
 
-add_executable(snap_vis_node src/snap_vis_node.cpp src/util/mcl_file.cpp ${SRC})
+add_executable(snap_vis_node src/snap_vis_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
 add_dependencies(snap_vis_node ${PROJECT_NAME}_gencfg CUDAEvaluator)
 target_link_libraries(snap_vis_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} CUDAEvaluator)
 
