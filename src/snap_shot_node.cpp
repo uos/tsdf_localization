@@ -81,10 +81,10 @@ FLOAT_T init_sigma_yaw_;
 
 int evaluation_model_;
 
-std::string robot_frame_;
-std::string scan_frame_;
-std::string odom_frame_;
-std::string map_frame_;
+std::string robot_frame_ = "base_footprint";
+std::string scan_frame_ = "velodyne";
+std::string odom_frame_ = "odom_combined";
+std::string map_frame_ = "map";
 
 std::string save_dir = "mcl_snapshots/";
 
@@ -100,11 +100,6 @@ void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
   init_sigma_yaw_ = config.init_sigma_yaw * M_PI / 180.0;
 
   evaluation_model_ = config.evaluation_model;
-
-  robot_frame_ = config.robot_frame;
-  scan_frame_ =  config.scan_frame;
-  odom_frame_ = config.odom_frame;
-  map_frame_ = config.map_frame;
 
   if(particle_cloud_.isInitialized())
   {

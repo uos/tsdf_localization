@@ -266,12 +266,6 @@ void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
 
   evaluation_model_ = config.evaluation_model;
 
-  // TODO: do these things change? I would propose to move them to classic parameter to easier set them via config files
-  robot_frame_ = config.robot_frame;
-  scan_frame_ =  config.scan_frame;
-  odom_frame_ = config.odom_frame;
-  map_frame_ = config.map_frame;
-
   switch (config.resampling_method)
   {
     case 0:
@@ -1077,6 +1071,14 @@ int main(int argc, char **argv)
   nh_p_->getParam("p_y", calib_pose.translation.y);
   nh_p_->getParam("p_z", calib_pose.translation.z);
   
+  nh_p_->getParam("robot_frame", robot_frame_);
+  nh_p_->getParam("scan_frame", scan_frame_);
+  nh_p_->getParam("odom_frame", odom_frame_);
+  nh_p_->getParam("map_frame", map_frame_);
+
+  nh_p_->getParam("cloud_topic", cloud_topic);
+  nh_p_->getParam("imu_topic", imu_topic);
+
   tf2::convert(calib_pose, gt_calib_pose_trans_);
 
   gt_last_trans_.setIdentity();
@@ -1105,22 +1107,6 @@ int main(int argc, char **argv)
     std::cout << "Not using any sensor for motion update..." << std::endl;
   }
 
-  // TODO: use one unique topic and do remapping in launch files
-  if (use_os_)
-  {
-    cloud_topic = "/os_cloud_node/points";
-    imu_topic = "/os_cloud_node/imu";
-
-    std::cout << "Use Ouster setup..." << std::endl;
-  }
-  else
-  {
-    cloud_topic = "velodyne_points";
-    imu_topic = "/imu/data";
-
-    std::cout << "Use Velodyne setup..." << std::endl;
-  }
-
   resampler_ptr_.reset(new ResidualSystematicResampler());
   
   ss_stamp << "stamp:\n";
@@ -1130,8 +1116,6 @@ int main(int argc, char **argv)
 
   callbackType = boost::bind(&responseCallback, _1, _2);
   server.setCallback(callbackType);
-
- 
 
   // Meaningfull initialization
   initial_pose_.orientation.w = 1.0;

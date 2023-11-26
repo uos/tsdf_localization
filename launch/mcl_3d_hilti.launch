@@ -70,6 +70,14 @@
     <param name="use_os" type="bool" value="true"/>
     <param name="ignore_motion" type="bool" value="false"/>
 
+    <param name="robot_frame" type="string" value="base_footprint"/>
+    <param name="scan_frame" type="string" value="velodyne"/>
+    <param name="odom_frame" type="string" value="odom_combined"/>
+    <param name="map_frame" type="string" value="map"/>
+
+    <param name="cloud_topic" type="string" value="/os_cloud_node/points"/>
+    <param name="imu_topic" type="string" value="/os_cloud_node/imu"/>
+
     <param name="reduction_cell_size" type="double" value="0.256"/>
 </node>
 
