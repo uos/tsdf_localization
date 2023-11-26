@@ -3,7 +3,7 @@
 This package consists of several nodes and tools to perform a 6D Monte Carlo Localization of robots equipped with a 3D LiDAR in 3D TSDF maps.
 The sensor update is massively accelerated by a GPU-based implementation, but can also be executed on the CPU.
 
-TODO: put small GIF here
+![Simulation Demo](doc/demo_video_cut.gif)
 
 ## Prerequisites
 * ROS Noetic (*ros-noetic-desktop-full*)
