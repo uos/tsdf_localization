@@ -3,7 +3,7 @@
 This package consists of several nodes and tools to perform a 6D Monte Carlo Localization of robots equipped with a 3D LiDAR in 3D TSDF maps.
 The sensor update is massively accelerated by a GPU-based implementation, but can also be executed on the CPU.
 
-TODO: put small GIF here
+[![Demo GIF](doc/tsdf_loc_teaser.gif)](https://github.com/uos/tsdf_localization_demo.git)
 
 ## Prerequisites
 * ROS Noetic (*ros-noetic-desktop-full*)
@@ -28,9 +28,6 @@ $ catkin build
 
 A quick startup including how to use tsdf_localization within your package is shown here: https://github.com/uos/tsdf_localization_demo.git
 
-[![Demo GIF](doc/tsdf_loc_teaser.gif)](https://github.com/uos/tsdf_localization_demo.git)
-
-
 ## Citation
 
 Please reference the following papers when using `tsdf_localization` in your scientific work.
@@ -46,32 +43,27 @@ The paper is accepted to 2023 IEEE International Conference on Robotic Computing
 
 Starts MCL in a given TSDF map.
 
-Subscribed Topics:
+#### Subscribed Topics:
 
 `initialpose (geometry_msgs/PoseWithCovarianceStamped)`
 
 Initial pose guess can be provided using RViz.
 
-`velodyne_points (sensor_msgs/PointCloud2)` 
+`/cloud (sensor_msgs/PointCloud2)` 
 
-PointCloud topic for sensor update. (TODO: more generic name)
+PointCloud topic for sensor update.
 
-`odom (nav_msgs/Odometry)`
+`/odom (nav_msgs/Odometry)`
 
 Odometry message for motion update.
 
-(optional) `/imu/data (sensor_msgs/Imu)`
+(optional) `/imu_data (sensor_msgs/Imu)`
 
+#### Services
 
+Start global localization:
 
-
-**TODO: more docs here**
-
-
-
-
-
-
+`/global_localization`
 
 
 ## Contributions
