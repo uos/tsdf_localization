@@ -28,6 +28,9 @@ $ catkin build
 
 A quick startup including how to use tsdf_localization within your package is shown here: https://github.com/uos/tsdf_localization_demo.git
 
+![Demo GIF](./doc/TSDFLoc.gif)
+
+
 ## Citation
 
 Please reference the following papers when using `tsdf_localization` in your scientific work.
