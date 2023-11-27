@@ -83,8 +83,6 @@ bool evaluated_ = false;
 // Use the IMU information in the motion update. If not the odometry is used 
 bool use_imu_ = false;
 
-bool use_gt_odom_ = false;
-
 // Use an ouster as input of the sensor update. If not a velodyne is used 
 bool use_os_ = false;
 
@@ -112,8 +110,6 @@ ros::Publisher particles_pub_;
 // Publisher of the current estimated pose
 ros::Publisher current_pose_pub_; 
 
-ros::Publisher gt_pub_;
-
 // Standard deviation for the mcl startup with an initial pose estimation
 FLOAT_T init_sigma_x_;
 FLOAT_T init_sigma_y_;
@@ -127,7 +123,6 @@ int evaluation_model_;
 
 // TF frames for the robot model
 std::string robot_frame_;
-std::string scan_frame_;
 std::string odom_frame_;
 std::string map_frame_;
 
@@ -141,13 +136,8 @@ bool use_cuda_ = true;
 bool per_point_ = false;
 // Should the particle set be initialized uniform in the given map?
 bool init_global_ = false;
-// Should the estimated poses of the algorithm be compared with the ground truth of the simulation?
-bool ground_truth_eval_ = false;
 
 bool print_runtime_stats_ = true;
-
-bool use_hilti_gt_ = false;
-bool hilti_calib_ = false;
 
 bool ignore_sensor_update_= false;
 
@@ -181,20 +171,6 @@ geometry_msgs::PoseWithCovariance current_pose;
 // Pose estimation based on best particle in the particle set
 geometry_msgs::PoseWithCovariance best_pose;
 
-// Current ground truth of the robot in the simulation
-Particle ground_truth_;
-
-geometry_msgs::PoseStamped gt_stamped_;
-
-Particle gt_calib_;
-tf2::Transform gt_calib_trans_;
-
-tf2::Transform gt_calib_pose_trans_;
-
-tf2::Transform gt_last_trans_;
-tf2::Transform delta_gt_trans_;
-Particle delta_gt_;
-
 // Initial offset in z direction
 FLOAT_T init_diff_z = 0.0;
 
@@ -215,8 +191,6 @@ std::vector<double> avg_diff_z;
 std::vector<double> avg_diff_roll;
 std::vector<double> avg_diff_pitch;
 std::vector<double> avg_diff_yaw;
-
-std::mutex gt_mutex_;
 
 // Struct for the definition of a three dimensional point
 struct MyPoint
@@ -292,154 +266,6 @@ void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
   {
     particle_cloud_.resize(number_particles_);
   }
-}
-
-/**
- * @brief Callback to store the current ground truth of robot pose in the simulation 
- */
-void ground_truth_callback(const nav_msgs::Odometry::ConstPtr& ground_truth)
-{
-  static tf2_ros::TransformBroadcaster broadcaster;
-  static tf2_ros::Buffer tf_buffer;
-  static tf2_ros::TransformListener tf_listener(tf_buffer);
-
-  ground_truth_.first[0] = ground_truth->pose.pose.position.x;
-  ground_truth_.first[1] = ground_truth->pose.pose.position.y;
-  ground_truth_.first[2] = ground_truth->pose.pose.position.z;
-
-  tf2::Quaternion q;
-
-  tf2::convert(ground_truth->pose.pose.orientation, q);
-
-  tf2::Matrix3x3 mat(q);
-  double r,p,y;
-  mat.getRPY(r, p, y);
-
-  ground_truth_.first[3] = r;
-  ground_truth_.first[4] = p;
-  ground_truth_.first[5] = y;
-
-  geometry_msgs::TransformStamped base_to_scan;
-
-  // Retriev the current transform from odom frame to scanner frame
-  try
-  {
-    base_to_scan = tf_buffer.lookupTransform(robot_frame_, scan_frame_, ground_truth->header.stamp, ros::Duration(0.5));
-  }
-  catch (tf2::TransformException& e)
-  {
-    ROS_WARN_STREAM("Couldn't transform from '" << odom_frame_ << "' to '" << robot_frame_ << "'." );
-    ros::Duration(0.1).sleep();
-    return;
-  }
-}
-
-void hilti_ground_truth_callback()
-{
-  static tf2_ros::TransformBroadcaster broadcaster;
-  static tf2_ros::Buffer tf_buffer;
-  static tf2_ros::TransformListener tf_listener(tf_buffer);
-
-  geometry_msgs::TransformStamped gt_tf;
-
-  try
-  {
-    gt_tf = tf_buffer.lookupTransform("world", "os_sensor", ros::Time(0));
-  }
-  catch (tf2::TransformException& e)
-  {
-    return;
-  }
-
-  if (gt_tf.transform.rotation.x == 0 && gt_tf.transform.rotation.y == 0 && gt_tf.transform.rotation.z == 0 && gt_tf.transform.rotation.w == 0)
-  {
-    return;
-  }
-
-  ground_truth_.first[0] = gt_tf.transform.translation.x; 
-  ground_truth_.first[1] = gt_tf.transform.translation.y; 
-  ground_truth_.first[2] = gt_tf.transform.translation.z; 
-
-  tf2::Quaternion q;
-
-  tf2::convert(gt_tf.transform.rotation, q);
-
-  tf2::Matrix3x3 mat(q);
-  double r,p,y;
-  mat.getRPY(r, p, y);
-
-  ground_truth_.first[3] = r;
-  ground_truth_.first[4] = p;
-  ground_truth_.first[5] = y;
-
-  if (!hilti_calib_) 
-  {
-    gt_calib_ = ground_truth_;
-
-    tf2::convert(gt_tf.transform, gt_calib_trans_);
-
-    std::cout << "First GT pose: " << std::endl; 
-    std::cout << "\trotation:\n" <<  gt_tf.transform.rotation << std::endl;
-    std::cout << "\tposition:\n" << gt_tf.transform.translation << std::endl;
-
-    hilti_calib_ = true;
-  }
-
-  tf2::Transform cur_gt_trans;
-  tf2::convert(gt_tf.transform, cur_gt_trans);
-
-  tf2::Transform map_gt_trans = gt_calib_pose_trans_.inverse() * cur_gt_trans;
-  
-  tf2::Matrix3x3 map_gt_mat(map_gt_trans.getRotation());
-  map_gt_mat.getRPY(r, p, y);
-
-  ground_truth_.first[0] = map_gt_trans.getOrigin().getX();
-  ground_truth_.first[1] = map_gt_trans.getOrigin().getY();
-  ground_truth_.first[2] = map_gt_trans.getOrigin().getZ();
-  ground_truth_.first[3] = r;
-  ground_truth_.first[4] = p;
-  ground_truth_.first[5] = y;
-
-  gt_mutex_.lock();
-
-  if (hilti_calib_)
-  {
-    delta_gt_trans_ = (gt_last_trans_.inverse() * map_gt_trans) * delta_gt_trans_;
-  }
-  else
-  {
-    delta_gt_trans_.setIdentity();
-  }
-
-  tf2::Matrix3x3 delta_gt_mat(delta_gt_trans_.getRotation());
-  delta_gt_mat.getRPY(r, p, y);
-
-  delta_gt_.first[0] = delta_gt_trans_.getOrigin().getX();
-  delta_gt_.first[1] = delta_gt_trans_.getOrigin().getY();
-  delta_gt_.first[2] = delta_gt_trans_.getOrigin().getZ();
-  delta_gt_.first[3] = r;
-  delta_gt_.first[4] = p;
-  delta_gt_.first[5] = y;
-
-
-  gt_stamped_.pose.position.x = ground_truth_.first[0];
-  gt_stamped_.pose.position.y = ground_truth_.first[1];
-  gt_stamped_.pose.position.z = ground_truth_.first[2];
-
-  mat.setRPY(ground_truth_.first[3], ground_truth_.first[4], ground_truth_.first[5]);
-
-  mat.getRotation(q);
-  tf2::convert(q, gt_stamped_.pose.orientation);
-
-  // gt_stamped_.header = ground_truth->header;
-  gt_stamped_.header = gt_tf.header;
-  gt_stamped_.header.frame_id = "map";
-
-  // gt_pub_.publish(gt_stamped_);
-
-  gt_last_trans_ = map_gt_trans;
-
-  gt_mutex_.unlock();
 }
 
 /**
@@ -548,7 +374,9 @@ void scanOdomCallback(
 
       try
       {
-        current_pose = tsdf_evaluator_ptr_->evaluateParticles(particle_cloud_, *cloud, robot_frame_, scan_frame_, use_cuda_);
+        // redundant? *cloud, cloud->header.frame_id
+        current_pose = tsdf_evaluator_ptr_->evaluateParticles(
+            particle_cloud_, *cloud, robot_frame_, cloud->header.frame_id, use_cuda_);
         current_pose.pose.position.z -= init_diff_z;
 
         FLOAT_T max_value = 0.0;
@@ -596,70 +424,6 @@ void scanOdomCallback(
       eval.start("resampling");
       resampler_ptr_->resample(particle_cloud_);
       eval.stop("resampling");
-
-
-      double r, p, y;
-
-      tf2::Quaternion ground_q;
-      tf2::convert(current_pose.pose.orientation, ground_q);
-      tf2::Matrix3x3(ground_q).getRPY(r, p, y);
-
-      if (ground_truth_eval_)
-      {
-
-        double diff_x, diff_y, diff_z, diff_roll, diff_pitch, diff_yaw; 
-
-        diff_x = (current_pose.pose.position.x - ground_truth_.first[0]);
-        diff_y = (current_pose.pose.position.y - ground_truth_.first[1]);
-        diff_z = (current_pose.pose.position.z - ground_truth_.first[2]);
-
-        diff_roll = (r - ground_truth_.first[3]) * 180.0 / M_PI;
-        diff_pitch = (p - ground_truth_.first[4]) * 180.0 / M_PI;
-        diff_yaw = (y - ground_truth_.first[5]) * 180.0 / M_PI;
-
-        std::cout << "Ground truth diff (average): " << diff_x << " "
-                                                     << diff_y << " "
-                                                     << diff_z << " "
-                                                     << diff_roll << " "
-                                                     << diff_pitch << " "
-                                                     << diff_yaw << std::endl;
-
-        avg_diff_x.push_back(abs(diff_x));
-        avg_diff_y.push_back(abs(diff_y));
-        avg_diff_z.push_back(abs(diff_z));
-
-        avg_diff_roll.push_back(abs(diff_roll));
-        avg_diff_pitch.push_back(abs(diff_pitch));
-        avg_diff_yaw.push_back(abs(diff_yaw));
-
-        tf2::convert(best_pose.pose.orientation, ground_q);
-        tf2::Matrix3x3(ground_q).getRPY(r, p, y);
-
-        diff_x = (best_pose.pose.position.x - ground_truth_.first[0]);
-        diff_y = (best_pose.pose.position.y - ground_truth_.first[1]);
-        diff_z = (best_pose.pose.position.z - ground_truth_.first[2]);
-
-        diff_roll = (r - ground_truth_.first[3]) * 180.0 / M_PI;
-        diff_pitch = (p - ground_truth_.first[4]) * 180.0 / M_PI;
-        diff_yaw = (y - ground_truth_.first[5]) * 180.0 / M_PI;
-
-        std::cout << "Ground truth diff (best): " << diff_x << " "
-                                                  << diff_y << " "
-                                                  << diff_z << " "
-                                                  << diff_roll << " "
-                                                  << diff_pitch << " "
-                                                  << diff_yaw << std::endl << std::endl;
-      
-        best_diff_x.push_back(abs(diff_x));
-        best_diff_y.push_back(abs(diff_y));
-        best_diff_z.push_back(abs(diff_z));
-
-        best_diff_roll.push_back(abs(diff_roll));
-        best_diff_pitch.push_back(abs(diff_pitch));
-        best_diff_yaw.push_back(abs(diff_yaw));
-
-      }
-      
     }
   }
 
@@ -706,7 +470,6 @@ void scanOdomCallback(
     // Retrieve the current transform from odom frame to scanner frame
     try
     {
-
       odom_to_base = tf_buffer.lookupTransform(odom_frame_, robot_frame_, odom->header.stamp, ros::Duration(0.5));
     }
     catch (tf2::TransformException& e)
@@ -731,7 +494,7 @@ void scanOdomCallback(
     broadcaster.sendTransform(stamped_transform);
   }
 
-  if (!ground_truth_eval_ && print_runtime_stats_)
+  if (print_runtime_stats_)
   {
     std::cout << eval.to_string() << std::endl;
   }
@@ -773,16 +536,6 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
     
     eval.start("motion update");
     
-    gt_mutex_.lock();
-
-    delta_gt_trans_.setIdentity();
-    
-    auto delta_gt = delta_gt_;
-    auto gt_stamped = gt_stamped_;
-    auto ground_truth = ground_truth_;
-
-    gt_mutex_.unlock();
-
     if (ignore_motion_)
     {
       particle_cloud_.motionUpdate(lin_scale_, ang_scale_);
@@ -790,15 +543,7 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
     else
     {
       
-
-      if (use_gt_odom_)
-      {
-        
-
-        particle_cloud_.motion_update(delta_gt.first[0], delta_gt.first[1], delta_gt.first[2],
-                                      delta_gt.first[3], delta_gt.first[4], delta_gt.first[5], lin_scale_, ang_scale_);
-      }
-      else if (use_imu_)
+      if (use_imu_)
       {
         ImuAccumulator::Data imu_data;
         imu_acc_.getAndResetData(imu_data);
@@ -832,7 +577,7 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
 
       try
       {
-        current_pose = tsdf_evaluator_ptr_->evaluateParticles(particle_cloud_, *cloud, robot_frame_, scan_frame_, use_cuda_, true);
+        current_pose = tsdf_evaluator_ptr_->evaluateParticles(particle_cloud_, *cloud, robot_frame_, cloud->header.frame_id, use_cuda_, true);
         FLOAT_T max_value = 0.0;
         FLOAT_T max_index = -1;
 
@@ -877,75 +622,6 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
       eval.start("resampling");
       resampler_ptr_->resample(particle_cloud_);
       eval.stop("resampling");
-
-
-      double r, p, y;
-
-      tf2::Quaternion ground_q;
-      tf2::convert(current_pose.pose.orientation, ground_q);
-      tf2::Matrix3x3(ground_q).getRPY(r, p, y);
-
-      if (ground_truth_eval_)
-      {
-
-        double diff_x, diff_y, diff_z, diff_roll, diff_pitch, diff_yaw; 
-
-        diff_x = (current_pose.pose.position.x - ground_truth.first[0]);
-        diff_y = (current_pose.pose.position.y - ground_truth.first[1]);
-        diff_z = (current_pose.pose.position.z - ground_truth.first[2]);
-
-        diff_roll = (r - ground_truth.first[3]) * 180.0 / M_PI;
-        diff_pitch = (p - ground_truth.first[4]) * 180.0 / M_PI;
-        diff_yaw = (y - ground_truth.first[5]) * 180.0 / M_PI;
-
-        std::cout << "Ground truth diff (average): " << diff_x << " "
-                                                     << diff_y << " "
-                                                     << diff_z << " "
-                                                     << diff_roll << " "
-                                                     << diff_pitch << " "
-                                                     << diff_yaw << std::endl;
-
-        avg_diff_x.push_back(abs(diff_x));
-        avg_diff_y.push_back(abs(diff_y));
-        avg_diff_z.push_back(abs(diff_z));
-
-        avg_diff_roll.push_back(abs(diff_roll));
-        avg_diff_pitch.push_back(abs(diff_pitch));
-        avg_diff_yaw.push_back(abs(diff_yaw));
-
-        tf2::convert(best_pose.pose.orientation, ground_q);
-        tf2::Matrix3x3(ground_q).getRPY(r, p, y);
-
-        diff_x = (best_pose.pose.position.x - ground_truth.first[0]);
-        diff_y = (best_pose.pose.position.y - ground_truth.first[1]);
-        diff_z = (best_pose.pose.position.z - ground_truth.first[2]);
-
-        diff_roll = (r - ground_truth.first[3]) * 180.0 / M_PI;
-        diff_pitch = (p - ground_truth.first[4]) * 180.0 / M_PI;
-        diff_yaw = (y - ground_truth.first[5]) * 180.0 / M_PI;
-
-        std::cout << "Ground truth diff (best): " << diff_x << " "
-                                                  << diff_y << " "
-                                                  << diff_z << " "
-                                                  << diff_roll << " "
-                                                  << diff_pitch << " "
-                                                  << diff_yaw << std::endl << std::endl;
-      
-        best_diff_x.push_back(abs(diff_x));
-        best_diff_y.push_back(abs(diff_y));
-        best_diff_z.push_back(abs(diff_z));
-
-        best_diff_roll.push_back(abs(diff_roll));
-        best_diff_pitch.push_back(abs(diff_pitch));
-        best_diff_yaw.push_back(abs(diff_yaw));
-
-      }
-
-      gt_stamped.header.stamp = ros::Time::now();
-      gt_pub_.publish(gt_stamped);
-
-
-
     }
   }
 
@@ -998,7 +674,7 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
     broadcaster.sendTransform(stamped_transform);
   }
 
-  if (!ground_truth_eval_ && print_runtime_stats_)
+  if (print_runtime_stats_)
   {
     std::cout << eval.to_string() << std::endl;
   }
@@ -1014,11 +690,6 @@ void os_callback(const sensor_msgs::PointCloud2::ConstPtr& cloud)
 void imuCallback(const sensor_msgs::Imu& imu)
 {
     imu_acc_.update(imu);
-
-    if (use_gt_odom_)
-    {
-      hilti_ground_truth_callback();
-    }
 }
 
 /**
@@ -1044,8 +715,6 @@ int main(int argc, char **argv)
   nh_p_->getParam("map_file", map_file_name_);
   nh_p_->getParam("per_point", per_point_);
   nh_p_->getParam("init_global", init_global_);
-  nh_p_->getParam("ground_truth_eval", ground_truth_eval_);
-  nh_p_->getParam("use_hilti_gt", use_hilti_gt_);
   nh_p_->getParam("a_hit", a_hit);
   nh_p_->getParam("a_rand", a_rand);
   nh_p_->getParam("a_max", a_max);
@@ -1054,7 +723,6 @@ int main(int argc, char **argv)
   nh_p_->getParam("use_os", use_os_);
   nh_p_->getParam("ignore_motion", ignore_motion_);
   nh_p_->getParam("use_best_pose", use_best_pose_);
-  nh_p_->getParam("use_gt_odom", use_gt_odom_);
   nh_p_->getParam("reduction_cell_size", reduction_cell_size_);
   nh_p_->getParam("print_runtime_stats", print_runtime_stats_);
 
@@ -1072,17 +740,8 @@ int main(int argc, char **argv)
   nh_p_->getParam("p_z", calib_pose.translation.z);
   
   nh_p_->getParam("robot_frame", robot_frame_);
-  nh_p_->getParam("scan_frame", scan_frame_);
   nh_p_->getParam("odom_frame", odom_frame_);
   nh_p_->getParam("map_frame", map_frame_);
-
-  nh_p_->getParam("cloud_topic", cloud_topic);
-  nh_p_->getParam("imu_topic", imu_topic);
-
-  tf2::convert(calib_pose, gt_calib_pose_trans_);
-
-  gt_last_trans_.setIdentity();
-  delta_gt_trans_.setIdentity();
 
   auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(map_file_name_, free_map_, sigma);
   
@@ -1090,11 +749,7 @@ int main(int argc, char **argv)
   tsdf_evaluator_ptr_.reset(new TSDFEvaluator(map, per_point_, a_hit, a_rand, a_max, max_range, reduction_cell_size_));
   std::cout << "TSDF evaluator created!" << std::endl;
 
-  if (use_gt_odom_)
-  {
-    std::cout << "Use ground truth for motion update..." << std::endl;
-  }
-  else if (use_imu_)
+  if (use_imu_)
   {
     std::cout << "Use IMU for motion update..." << std::endl;
   }
@@ -1124,17 +779,10 @@ int main(int argc, char **argv)
   ros::Subscriber sub_initial_pose = n.subscribe("initialpose", 1, initialPoseCallback);
   ros::ServiceServer serv_global_loc = n.advertiseService("global_localization", globalLocalizationCallback);
 
-  ros::Subscriber sub_ground_truth; 
-  
-  if (!use_hilti_gt_)
-  {
-    sub_ground_truth = n.subscribe("/base_footprint_pose_ground_truth", 1, ground_truth_callback);
-  }
-
-  auto imu_sub = n.subscribe(imu_topic, 1, imuCallback);
+  auto imu_sub = n.subscribe("imu_data", 1, imuCallback);
 
   // Initialize synchronized subscriber for the scan and odom topic
-  message_filters::Subscriber<sensor_msgs::PointCloud2> scan2_sub(n, cloud_topic, 1);
+  message_filters::Subscriber<sensor_msgs::PointCloud2> scan2_sub(n, "cloud", 1);
 
   message_filters::Subscriber<nav_msgs::Odometry> odom_sub(n, "odom", 1);
 
@@ -1159,8 +807,6 @@ int main(int argc, char **argv)
   particles_pub_ = nh_p_->advertise<geometry_msgs::PoseArray>("particles", 1);
   current_pose_pub_ = nh_p_->advertise<geometry_msgs::PoseWithCovarianceStamped>("current_pose", 1);
 
-  gt_pub_ = n.advertise<geometry_msgs::PoseStamped>("/gt_pose", 1);
-
   ros::MultiThreadedSpinner spinner;
 
   spinner.spin();
@@ -1176,26 +822,6 @@ int main(int argc, char **argv)
   std::ofstream time_output(filename.str());
   time_output << RuntimeEvaluator::get_instance().to_string(true) << "\n\n" << ss_stamp.str();
   time_output.close();
-
-  if (ground_truth_eval_)
-  {
-    std::ostringstream gt_filename, best_diff_string, avg_diff_string;
-    gt_filename << "mcl_gt_" << std::put_time(std::localtime(&t), "%Y-%m-%d-%H-%M-%S") << ".log";
-
-    best_diff_string << "best diff x,best diff y,best diff z,best diff roll,best diff pitch,best diff yaw\n";
-
-    avg_diff_string << "avg diff x,avg diff y,avg diff z,avg diff roll,avg diff pitch,avg diff yaw\n";
-
-    for (auto index = 0u; index < best_diff_x.size(); ++index)
-    {
-      best_diff_string << best_diff_x[index] << "," << best_diff_y[index] << "," << best_diff_z[index] << "," << best_diff_roll[index] << "," << best_diff_pitch[index] << "," << best_diff_yaw[index] << "\n";
-      avg_diff_string << avg_diff_x[index] << "," << avg_diff_y[index] << "," << avg_diff_z[index] << "," << avg_diff_roll[index] << "," << avg_diff_pitch[index] << "," << avg_diff_yaw[index] << "\n";
-    }
-
-    time_output.open(gt_filename.str());
-    time_output << best_diff_string.str() << "\n" << avg_diff_string.str();
-    time_output.close();
-  }
 
   tsdf_evaluator_ptr_.reset();
 
