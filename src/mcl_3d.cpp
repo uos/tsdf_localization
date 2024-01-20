@@ -10,13 +10,13 @@
  * @copyright Copyright (c) 2022
  */
 
-#include "ros/ros.h"
+#include <rclcpp/rclcpp.hpp>
 
-#include <sensor_msgs/LaserScan.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <nav_msgs/OccupancyGrid.h>
-#include <nav_msgs/Odometry.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
@@ -24,15 +24,15 @@
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
-#include <nav_msgs/Path.h>
+#include <nav_msgs/msg/path.hpp>
 
-#include <std_srvs/Empty.h>
+#include <std_srvs/srv/empty.hpp>
 
-#include <dynamic_reconfigure/server.h>
-#include <tsdf_localization/MCLConfig.h>
+// #include <dynamic_reconfigure/server.h>
+// #include <tsdf_localization/MCLConfig.h>
 
 #include <random>
 #include <cmath>
@@ -203,70 +203,70 @@ struct MyPoint
 /**
  * @brief Loading of the dynamic reconfigure parameters 
  */
-void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
-{
-  number_particles_ = config.number_of_particles;
+// void responseCallback(tsdf_localization::MCLConfig& config, uint32_t level)
+// {
+//   number_particles_ = config.number_of_particles;
   
-  init_sigma_x_ = config.init_sigma_x;
-  init_sigma_y_ = config.init_sigma_y;
-  init_sigma_z_ = config.init_sigma_z;
-  init_sigma_roll_ = config.init_sigma_roll * M_PI / 180.0;
-  init_sigma_pitch_ = config.init_sigma_pitch * M_PI / 180.0;
-  init_sigma_yaw_ = config.init_sigma_yaw * M_PI / 180.0;
+//   init_sigma_x_ = config.init_sigma_x;
+//   init_sigma_y_ = config.init_sigma_y;
+//   init_sigma_z_ = config.init_sigma_z;
+//   init_sigma_roll_ = config.init_sigma_roll * M_PI / 180.0;
+//   init_sigma_pitch_ = config.init_sigma_pitch * M_PI / 180.0;
+//   init_sigma_yaw_ = config.init_sigma_yaw * M_PI / 180.0;
 
 
-  delta_update_dist_ = config.delta_update_dist;
-  delta_update_angle_ = config.delta_update_angle * M_PI / 180.0;
+//   delta_update_dist_ = config.delta_update_dist;
+//   delta_update_angle_ = config.delta_update_angle * M_PI / 180.0;
   
-  use_cuda_ = config.use_cuda;
+//   use_cuda_ = config.use_cuda;
 
-  a_1 = config.a_1;
-  a_2 = config.a_2;
-  a_3 = config.a_3;
-  a_4 = config.a_4;
-  a_5 = config.a_5;
-  a_6 = config.a_6;
-  a_7 = config.a_7;
-  a_8 = config.a_8;
-  a_9 = config.a_9;
-  a_10 = config.a_10;
-  a_11 = config.a_11;
-  a_12 = config.a_12;
+//   a_1 = config.a_1;
+//   a_2 = config.a_2;
+//   a_3 = config.a_3;
+//   a_4 = config.a_4;
+//   a_5 = config.a_5;
+//   a_6 = config.a_6;
+//   a_7 = config.a_7;
+//   a_8 = config.a_8;
+//   a_9 = config.a_9;
+//   a_10 = config.a_10;
+//   a_11 = config.a_11;
+//   a_12 = config.a_12;
 
-  lin_scale_ = config.lin_scale;
-  ang_scale_ = config.ang_scale;
+//   lin_scale_ = config.lin_scale;
+//   ang_scale_ = config.ang_scale;
 
-  particle_cloud_.setMotionParameters(a_1, a_2, a_3, a_4, a_5, a_6, a_7, a_8, a_9, a_10, a_11, a_12);
+//   particle_cloud_.setMotionParameters(a_1, a_2, a_3, a_4, a_5, a_6, a_7, a_8, a_9, a_10, a_11, a_12);
 
-  evaluation_model_ = config.evaluation_model;
+//   evaluation_model_ = config.evaluation_model;
 
-  switch (config.resampling_method)
-  {
-    case 0:
-      resampler_ptr_.reset(new WheelResampler());
-      break;
-    case 1:
-      resampler_ptr_.reset(new ResidualResampler());
-      break;
-    case 2:
-      resampler_ptr_.reset(new SystematicResampler());
-      break;
-    case 3:
-      resampler_ptr_.reset(new ResidualSystematicResampler());
-      break;
-    case 4:
-      resampler_ptr_.reset(new MetropolisResampler(50));
-      break;
-    default:
-      resampler_ptr_.reset(new RejectionResampler());
-      break;
-  }
+//   switch (config.resampling_method)
+//   {
+//     case 0:
+//       resampler_ptr_.reset(new WheelResampler());
+//       break;
+//     case 1:
+//       resampler_ptr_.reset(new ResidualResampler());
+//       break;
+//     case 2:
+//       resampler_ptr_.reset(new SystematicResampler());
+//       break;
+//     case 3:
+//       resampler_ptr_.reset(new ResidualSystematicResampler());
+//       break;
+//     case 4:
+//       resampler_ptr_.reset(new MetropolisResampler(50));
+//       break;
+//     default:
+//       resampler_ptr_.reset(new RejectionResampler());
+//       break;
+//   }
 
-  if(particle_cloud_.isInitialized())
-  {
-    particle_cloud_.resize(number_particles_);
-  }
-}
+//   if(particle_cloud_.isInitialized())
+//   {
+//     particle_cloud_.resize(number_particles_);
+//   }
+// }
 
 /**
  * @brief Callback to get the initial pose etsimation for the algorithm  
@@ -766,11 +766,11 @@ int main(int argc, char **argv)
   
   ss_stamp << "stamp:\n";
 
-  dynamic_reconfigure::Server<tsdf_localization::MCLConfig> server;
-  dynamic_reconfigure::Server<tsdf_localization::MCLConfig>::CallbackType callbackType;
+  // dynamic_reconfigure::Server<tsdf_localization::MCLConfig> server;
+  // dynamic_reconfigure::Server<tsdf_localization::MCLConfig>::CallbackType callbackType;
 
-  callbackType = boost::bind(&responseCallback, _1, _2);
-  server.setCallback(callbackType);
+  // callbackType = boost::bind(&responseCallback, _1, _2);
+  // server.setCallback(callbackType);
 
   // Meaningfull initialization
   initial_pose_.orientation.w = 1.0;

@@ -19,9 +19,9 @@
 #include <array>
 #include <utility>
 
-#include <ros/ros.h>
-#include <geometry_msgs/Pose.h>
-#include <nav_msgs/Odometry.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 #include <tsdf_localization/util/util.h>
 #include <tsdf_localization/resampling/resampler.h>
@@ -51,7 +51,7 @@ class ParticleCloud
   /// random generator
   std::shared_ptr<std::mt19937> m_generator_ptr;
 
-  ros::Time m_last_time;
+  rclcpp::Time m_last_time;
 
   // Reference pose of the robot tto determine the pose change since the last sensor update
   std::array<FLOAT_T, 6> ref_pose;
@@ -84,17 +84,17 @@ public:
   /**
    * @brief Initialize the particle cloud local with a normal distribution
    */
-  ParticleCloud(const geometry_msgs::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw);
+  ParticleCloud(const geometry_msgs::msg::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw);
 
   /**
    * @brief Initialize the particle cloud local with a uniform distribution
    */
-  ParticleCloud(unsigned int number_particles, const geometry_msgs::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
+  ParticleCloud(unsigned int number_particles, const geometry_msgs::msg::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
 
   /**
    * @brief Initialize the particle cloud global in the given map
    */
-  ParticleCloud(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::Pose& center_pose, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
+  ParticleCloud(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::msg::Pose& center_pose, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
 
   /**
    * @brief Initializes the particles by sampling a normal distribution with a given pose as average 
@@ -102,17 +102,17 @@ public:
    * @param center_pose Center of the sampled normal distribution of two dimensional poses
    * @param number_particles The number of particles that should be sampled
    */
-  void initialize(const geometry_msgs::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw);
+  void initialize(const geometry_msgs::msg::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw);
 
   /**
    * @brief Initialize the particle cloud local with a uniform distribution
    */
-  void initialize(unsigned int number_particles, const geometry_msgs::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
+  void initialize(unsigned int number_particles, const geometry_msgs::msg::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
 
   /**
    * @brief Initialize the particle cloud global in the given map
    */
-  void initialize(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::Pose& center_pose, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
+  void initialize(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::msg::Pose& center_pose, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
 
 
   /**
@@ -120,7 +120,7 @@ public:
    * 
    * @param odom Containing information about the current action of the robot 
    */
-  void motionUpdate(const nav_msgs::Odometry& odom);
+  void motionUpdate(const nav_msgs::msg::Odometry& odom);
 
   /**
    * @brief Performs a motion update on the particle cloud based on IMU data

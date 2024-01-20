@@ -1,7 +1,8 @@
 #ifndef IMU_ACC_H
 #define IMU_ACC_H
 
-#include <sensor_msgs/Imu.h>
+#include <sensor_msgs/msg/imu.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include <tuple>
 #include <mutex>
@@ -36,13 +37,14 @@ public:
 
     }
 
-    void update(const sensor_msgs::Imu& imu)
+    void update(const sensor_msgs::msg::Imu& imu)
     {
         mutex_.lock();
 
         if (first_)
         {
-            last_ = ros::Time::now();
+            // TODO: get current time
+            //last_ = ros::Time::now();
             first_ = false;
 
             mutex_.unlock();
@@ -50,9 +52,10 @@ public:
             return;
         }
 
-        ros::Time current = ros::Time::now();
+        // TODO: Get current time
+        rclcpp::Time current;
 
-        auto dt = (current - last_).toSec();
+        auto dt = (current - last_).seconds();
 
         data_.delta_x += 0.5 * -imu.linear_acceleration.x * dt * dt + data_.linear_vel * dt;
         data_.linear_vel += -imu.linear_acceleration.x * dt;
@@ -122,7 +125,7 @@ public:
 
 private:
     bool first_;
-    ros::Time last_;
+    rclcpp::Time last_;
 
     Data data_;
 

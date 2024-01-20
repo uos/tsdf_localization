@@ -3,8 +3,8 @@
 
 #include <tsdf_localization/map/device_map.h>
 #include <tsdf_localization/cuda/cuda_sub_voxel_map.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <geometry_msgs/PoseWithCovariance.h>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <geometry_msgs/msg/pose_with_covariance.h>
 
 #include <memory>
 #include <tuple>
@@ -94,12 +94,12 @@ constexpr size_t TRANSFORM_BYTES = sizeof(FLOAT_T) * 16;
 class Evaluator
 {
 public:
-  virtual geometry_msgs::PoseWithCovariance evaluate(std::vector<Particle>& particles, const sensor_msgs::PointCloud2& real_cloud, FLOAT_T tf_matrix[16])
+  virtual geometry_msgs::msg::PoseWithCovariance evaluate(std::vector<Particle>& particles, const sensor_msgs::msg::PointCloud2& real_cloud, FLOAT_T tf_matrix[16])
   {
     throw std::runtime_error("CUDA acceleration is not supported. Please install CUDA!");
   }
 
-  virtual geometry_msgs::PoseWithCovariance evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16])
+  virtual geometry_msgs::msg::PoseWithCovariance evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16])
   {
     throw std::runtime_error("CUDA acceleration is not supported. Please install CUDA!");
   }
@@ -114,9 +114,9 @@ public:
     CudaEvaluator(const CudaEvaluator&) = delete;
     CudaEvaluator& operator=(const CudaEvaluator&) = delete;
 
-    virtual geometry_msgs::PoseWithCovariance evaluate(std::vector<Particle>& particles, const sensor_msgs::PointCloud2& real_cloud, FLOAT_T tf_matrix[16]);
+    virtual geometry_msgs::msg::PoseWithCovariance evaluate(std::vector<Particle>& particles, const sensor_msgs::msg::PointCloud2& real_cloud, FLOAT_T tf_matrix[16]);
 
-    virtual geometry_msgs::PoseWithCovariance evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16]);
+    virtual geometry_msgs::msg::PoseWithCovariance evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16]);
 
     virtual ~CudaEvaluator();
 

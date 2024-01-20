@@ -1,9 +1,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <geometry_msgs/Quaternion.h>
-#include <tf/tf.h>
-#include <nav_msgs/OccupancyGrid.h>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+//#include <tf/tf.h>
+#include <nav_msgs/msg/occupancy_grid.hpp>
 
 namespace tsdf_localization
 {
@@ -24,7 +25,7 @@ constexpr FLOAT_T A_MAX = 0.0;
  * 
  * @return The yaw angle from the given quaternion 
  */
-FLOAT_T getYawFromQuaternion(const geometry_msgs::Quaternion& quaternion);
+FLOAT_T getYawFromQuaternion(const geometry_msgs::msg::Quaternion& quaternion);
 
 /**
  * @brief Extract the roll from a given quaternion
@@ -33,7 +34,7 @@ FLOAT_T getYawFromQuaternion(const geometry_msgs::Quaternion& quaternion);
  * 
  * @return The roll angle from the given quaternion 
  */
-FLOAT_T getRollFromQuaternion(const geometry_msgs::Quaternion& quaternion);
+FLOAT_T getRollFromQuaternion(const geometry_msgs::msg::Quaternion& quaternion);
 
 /**
  * @brief Extract the pitch from a given quaternion
@@ -42,7 +43,7 @@ FLOAT_T getRollFromQuaternion(const geometry_msgs::Quaternion& quaternion);
  * 
  * @return The pitch angle from the given quaternion 
  */
-FLOAT_T getPitchFromQuaternion(const geometry_msgs::Quaternion& quaternion);
+FLOAT_T getPitchFromQuaternion(const geometry_msgs::msg::Quaternion& quaternion);
 
 /**
  * @brief Transform a given point based into a coordinate system represented by a pose
@@ -52,7 +53,7 @@ FLOAT_T getPitchFromQuaternion(const geometry_msgs::Quaternion& quaternion);
  * 
  * @return transformed point
  */
-geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const geometry_msgs::Pose& transform);
+geometry_msgs::msg::Point transformPoint(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Pose& transform);
 
 /**
  * @brief Builds a tf transform from a map representation to a global frame  
@@ -61,7 +62,7 @@ geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const geo
  * 
  * @return Transformation from the map representation to the global coordinate system 
  */
-geometry_msgs::TransformStamped getMapToWorldTF(const nav_msgs::MapMetaData& map_meta);
+geometry_msgs::msg::TransformStamped getMapToWorldTF(const nav_msgs::msg::MapMetaData& map_meta);
 
 /**
  * @brief Builds a tf transform from a global frame to a map representation   
@@ -70,7 +71,7 @@ geometry_msgs::TransformStamped getMapToWorldTF(const nav_msgs::MapMetaData& map
  * 
  * @return Transformation from the global coordinate system to the map representation 
  */
-geometry_msgs::TransformStamped getWorldToMapTF(const nav_msgs::MapMetaData& map_meta);
+geometry_msgs::msg::TransformStamped getWorldToMapTF(const nav_msgs::msg::MapMetaData& map_meta);
 
 void getAngleFromMat(const FLOAT_T mat[16], FLOAT_T& roll,  FLOAT_T& pitch,  FLOAT_T& yaw);
 

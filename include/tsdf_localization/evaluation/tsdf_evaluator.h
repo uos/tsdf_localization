@@ -15,8 +15,8 @@
 
 #include <tsdf_localization/map/device_map.h>
 #include <tsdf_localization/cuda/cuda_sub_voxel_map.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <geometry_msgs/PoseWithCovariance.h>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <geometry_msgs/msg/pose_with_covariance.hpp>
 #include <tsdf_localization/evaluation/model/evaluation_model.h>
 #include <tsdf_localization/particle_cloud.h>
 
@@ -99,7 +99,7 @@ public:
      * 
      * @return geometry_msgs::PoseWithCovariance Pose estimation of the robot determined by the sensor update with uncertainty
      */
-    virtual geometry_msgs::PoseWithCovariance evaluateParticles(ParticleCloud& particle_cloud, const sensor_msgs::PointCloud2& real_cloud, const std::string& robot_frame = "base_footprint", const std::string& scan_frame = "scanner", bool use_cuda = false, bool ignore_tf = false);
+    virtual geometry_msgs::PoseWithCovariance evaluateParticles(ParticleCloud& particle_cloud, const sensor_msgs::msg::PointCloud2& real_cloud, const std::string& robot_frame = "base_footprint", const std::string& scan_frame = "scanner", bool use_cuda = false, bool ignore_tf = false);
     
     /**
      * @brief Evaluate a given particle cloud in the provided TSDF map of the environment based on a measured laser scan
@@ -111,7 +111,7 @@ public:
      * 
      * @return geometry_msgs::PoseWithCovariance Pose estimation of the robot determined by the sensor update with uncertainty
      */
-    virtual geometry_msgs::PoseWithCovariance evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16], bool use_cuda = false);
+    virtual geometry_msgs::msg::PoseWithCovariance evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16], bool use_cuda = false);
 };
 
 } // namespace tsdf_localization

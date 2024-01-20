@@ -14,22 +14,22 @@ ParticleCloud::ParticleCloud()
   m_generator_ptr.reset(new std::mt19937(device()));
 }
 
-ParticleCloud::ParticleCloud(const geometry_msgs::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw) : ParticleCloud()
+ParticleCloud::ParticleCloud(const geometry_msgs::msg::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw) : ParticleCloud()
 {
   initialize(center_pose, number_particles, init_sigma_x, init_sigma_y, init_sigma_z, init_sigma_roll, init_sigma_pitch, init_sigma_yaw);
 }
 
-ParticleCloud::ParticleCloud(unsigned int number_particles, const geometry_msgs::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw) : ParticleCloud()
+ParticleCloud::ParticleCloud(unsigned int number_particles, const geometry_msgs::msg::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw) : ParticleCloud()
 {
   initialize(number_particles, center_pose, dx, dy, dz, droll, dpitch, dyaw);
 }
 
-ParticleCloud::ParticleCloud(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::Pose& center_pose, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw) : ParticleCloud()
+ParticleCloud::ParticleCloud(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::msg::Pose& center_pose, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw) : ParticleCloud()
 {
   initialize(number_particles, free_map, center_pose, droll, dpitch, dyaw);
 }
 
-void ParticleCloud::initialize(const geometry_msgs::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw)
+void ParticleCloud::initialize(const geometry_msgs::msg::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw)
 {
   ref_pose.fill(0);
 
@@ -56,10 +56,11 @@ void ParticleCloud::initialize(const geometry_msgs::Pose& center_pose, unsigned 
     m_particles[index].first[5] = distribution_yaw(*m_generator_ptr);
   }
 
-  m_last_time = ros::Time::now();
+  // TODO: Get current time
+  //m_last_time = ros::Time::now();
 }
 
-void ParticleCloud::initialize(unsigned int number_particles, const geometry_msgs::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw)
+void ParticleCloud::initialize(unsigned int number_particles, const geometry_msgs::msg::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw)
 {
   ref_pose.fill(0);
 
@@ -98,10 +99,11 @@ void ParticleCloud::initialize(unsigned int number_particles, const geometry_msg
     m_particles[index].first[5] = distribution_yaw(*m_generator_ptr);
   }
 
-  m_last_time = ros::Time::now();
+  // TODO: Get current time
+  //m_last_time = ros::Time::now();
 }
 
-void ParticleCloud::initialize(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::Pose& center_pose, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw)
+void ParticleCloud::initialize(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::msg::Pose& center_pose, FLOAT_T droll, FLOAT_T dpitch, FLOAT_T dyaw)
 {
   ref_pose.fill(0);
 
@@ -142,7 +144,8 @@ void ParticleCloud::initialize(unsigned int number_particles, const std::vector<
     m_particles[index].first[5] = distribution_yaw(*m_generator_ptr);
   }
 
-  m_last_time = ros::Time::now();
+  // TODO: Get current time
+  //m_last_time = ros::Time::now();
 }
 
 bool ParticleCloud::isInitialized() const
@@ -150,7 +153,7 @@ bool ParticleCloud::isInitialized() const
   return m_particles.size() != 0;
 }
 
-void ParticleCloud::motionUpdate(const nav_msgs::Odometry& odom)
+void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
 {
   std::vector<Particle> new_particles(m_particles.size());
 
@@ -173,8 +176,10 @@ void ParticleCloud::motionUpdate(const nav_msgs::Odometry& odom)
   FLOAT_T random_velocity_pitch;
   FLOAT_T random_velocity_yaw;
 
-  ros::Time current_time = ros::Time::now();
-  FLOAT_T time_diff = (current_time - m_last_time).toSec();
+  // TODO: get current time
+  rclcpp::Time current_time;
+  
+  FLOAT_T time_diff = (current_time - m_last_time).seconds();
   m_last_time = current_time;
 
   ref_pose[0] = ref_pose[0] + linear_velocity * time_diff * cos(ref_pose[5] + (angular_velocity / 2 * time_diff));
@@ -346,8 +351,10 @@ void ParticleCloud::motionUpdate(const ImuAccumulator::Data& imu_data)
   FLOAT_T random_velocity_pitch;
   FLOAT_T random_velocity_yaw;
 
-  ros::Time current_time = ros::Time::now();
-  FLOAT_T time_diff = (current_time - m_last_time).toSec();
+  // TODO: get current time
+  rclcpp::Time current_time;
+  
+  FLOAT_T time_diff = (current_time - m_last_time).seconds();
   m_last_time = current_time;
 
   ref_pose[0] = ref_pose[0] + linear_velocity * time_diff * cos(ref_pose[5] + (angular_velocity / 2 * time_diff));
@@ -388,8 +395,10 @@ void ParticleCloud::motionUpdate(FLOAT_T lin_scale, FLOAT_T ang_scale)
   FLOAT_T random_velocity_pitch;
   FLOAT_T random_velocity_yaw;
 
-  ros::Time current_time = ros::Time::now();
-  FLOAT_T time_diff = (current_time - m_last_time).toSec();
+  // TODO: get current time
+  rclcpp::Time current_time;
+
+  FLOAT_T time_diff = (current_time - m_last_time).seconds();
   m_last_time = current_time;
 
   auto d = lin_scale * time_diff;
@@ -423,8 +432,10 @@ void ParticleCloud::motionUpdate(FLOAT_T lin_scale, const ImuAccumulator::Data& 
   FLOAT_T random_velocity_pitch;
   FLOAT_T random_velocity_yaw;
 
-  ros::Time current_time = ros::Time::now();
-  FLOAT_T time_diff = (current_time - m_last_time).toSec();
+  // TODO: get current time
+  rclcpp::Time current_time;
+  
+  FLOAT_T time_diff = (current_time - m_last_time).seconds();
   m_last_time = current_time;
 
   auto d = lin_scale * time_diff;
@@ -464,8 +475,10 @@ void ParticleCloud::motion_update(FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T ro
   FLOAT_T random_velocity_pitch;
   FLOAT_T random_velocity_yaw;
 
-  ros::Time current_time = ros::Time::now();
-  FLOAT_T time_diff = (current_time - m_last_time).toSec();
+  // TODO: get current time
+  rclcpp::Time current_time;
+  
+  FLOAT_T time_diff = (current_time - m_last_time).seconds();
   m_last_time = current_time;
 
   ref_pose[0] = ref_pose[0] + dx * cos(ref_pose[5] + yaw);

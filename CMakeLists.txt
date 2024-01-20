@@ -20,16 +20,26 @@ find_package(ament_cmake REQUIRED
   COMPONENTS
     #diagnostic_updater
     #dynamic_reconfigure
-    geometry_msgs
-    roscpp
-    sensor_msgs
-    visualization_msgs
-    nav_msgs
+    #geometry_msgs
+    #rclcpp
+    #sensor_msgs
+    #visualization_msgs
+    #nav_msgs
     #tf2
     #tf2_sensor_msgs
     #message_runtime
     #message_generation
 )
+
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2_sensor_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
 find_package(CUDA)
 
@@ -104,7 +114,16 @@ function(MAKE_NODE NAME CPP)
 
   target_compile_options(${NAME} PRIVATE ${OpenMP_FLAGS})
 
-  ament_target_dependencies(${NAME})
+  ament_target_dependencies(${NAME} 
+    rclcpp
+    sensor_msgs
+    geometry_msgs
+    visualization_msgs
+    nav_msgs
+    tf2_sensor_msgs 
+    tf2_geometry_msgs 
+    std_srvs
+  )
 
   target_link_libraries(${NAME}
     ${OpenMP_LIBS}
@@ -132,6 +151,18 @@ endif(CUDA_FOUND)
 
 add_executable(mcl_3d src/mcl_3d.cpp ${TSDF_LOC_SRC})
 
+ament_target_dependencies(mcl_3d
+    rclcpp
+    sensor_msgs
+    geometry_msgs
+    visualization_msgs
+    nav_msgs
+    tf2_sensor_msgs 
+    tf2_geometry_msgs
+    std_srvs
+)
+
+
 if (CUDA_FOUND)
 
 add_dependencies(mcl_3d CUDAEvaluator)
@@ -152,66 +183,66 @@ target_link_libraries(mcl_3d
     Eigen3::Eigen
 )
 
-add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
+# add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
 
-if (CUDA_FOUND)
+# if (CUDA_FOUND)
 
-add_dependencies(num_particles_eval CUDAEvaluator)
-target_link_libraries(num_particles_eval ${Boost_LIBRARIES} CUDAEvaluator)
+# add_dependencies(num_particles_eval CUDAEvaluator)
+# target_link_libraries(num_particles_eval ${Boost_LIBRARIES} CUDAEvaluator)
 
-else (CUDA_FOUND)
+# else (CUDA_FOUND)
 
-target_link_libraries(num_particles_eval ${Boost_LIBRARIES})
+# target_link_libraries(num_particles_eval ${Boost_LIBRARIES})
 
-endif (CUDA_FOUND)
+# endif (CUDA_FOUND)
 
-target_compile_options(num_particles_eval PRIVATE ${OpenMP_FLAGS})
+# target_compile_options(num_particles_eval PRIVATE ${OpenMP_FLAGS})
 
-target_link_libraries(num_particles_eval
-    ${OpenMP_LIBS}
-    ${HDF5_LIBRARIES}
-    ${HDF5_HL_LIBRARIES}
-    Eigen3::Eigen
-)
+# target_link_libraries(num_particles_eval
+#     ${OpenMP_LIBS}
+#     ${HDF5_LIBRARIES}
+#     ${HDF5_HL_LIBRARIES}
+#     Eigen3::Eigen
+# )
 
-if (CUDA_FOUND)
+# if (CUDA_FOUND)
 
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LZ4 REQUIRED liblz4)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(LZ4 REQUIRED liblz4)
 
-endif (CUDA_FOUND)
+# endif (CUDA_FOUND)
 
-MAKE_NODE(tsdf_vis src/tsdf_vis.cpp)
+# MAKE_NODE(tsdf_vis src/tsdf_vis.cpp)
 
-if (CUDA_FOUND)
+# if (CUDA_FOUND)
 
-add_executable(snap_shot_node src/snap_shot_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
-add_dependencies(snap_shot_node CUDAEvaluator)
-target_link_libraries(snap_shot_node ${Boost_LIBRARIES} CUDAEvaluator)
+# add_executable(snap_shot_node src/snap_shot_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
+# add_dependencies(snap_shot_node CUDAEvaluator)
+# target_link_libraries(snap_shot_node ${Boost_LIBRARIES} CUDAEvaluator)
 
-target_compile_options(snap_shot_node PRIVATE ${OpenMP_FLAGS})
+# target_compile_options(snap_shot_node PRIVATE ${OpenMP_FLAGS})
 
-target_link_libraries(snap_shot_node
-    ${OpenMP_LIBS}
-    ${HDF5_LIBRARIES}
-    ${HDF5_HL_LIBRARIES}
-    Eigen3::Eigen
-)
+# target_link_libraries(snap_shot_node
+#     ${OpenMP_LIBS}
+#     ${HDF5_LIBRARIES}
+#     ${HDF5_HL_LIBRARIES}
+#     Eigen3::Eigen
+# )
 
-add_executable(snap_vis_node src/snap_vis_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
-add_dependencies(snap_vis_node CUDAEvaluator)
-target_link_libraries(snap_vis_node ${Boost_LIBRARIES} CUDAEvaluator)
+# add_executable(snap_vis_node src/snap_vis_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
+# add_dependencies(snap_vis_node CUDAEvaluator)
+# target_link_libraries(snap_vis_node ${Boost_LIBRARIES} CUDAEvaluator)
 
-target_compile_options(snap_vis_node PRIVATE ${OpenMP_FLAGS})
+# target_compile_options(snap_vis_node PRIVATE ${OpenMP_FLAGS})
 
-target_link_libraries(snap_vis_node
-    ${OpenMP_LIBS}
-    ${HDF5_LIBRARIES}
-    ${HDF5_HL_LIBRARIES}
-    Eigen3::Eigen
-)
+# target_link_libraries(snap_vis_node
+#     ${OpenMP_LIBS}
+#     ${HDF5_LIBRARIES}
+#     ${HDF5_HL_LIBRARIES}
+#     Eigen3::Eigen
+# )
 
-endif (CUDA_FOUND)
+# endif (CUDA_FOUND)
 
 ament_package()
