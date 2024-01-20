@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.18)
 project(tsdf_localization 
         VERSION 1.0.0)
 
@@ -16,19 +16,19 @@ set(CMAKE_CXX_STANDARD 17)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED 
+find_package(ament_cmake REQUIRED 
   COMPONENTS
-    diagnostic_updater
-    dynamic_reconfigure
+    #diagnostic_updater
+    #dynamic_reconfigure
     geometry_msgs
     roscpp
     sensor_msgs
     visualization_msgs
     nav_msgs
-    tf2
-    tf2_sensor_msgs
-    message_runtime
-    message_generation
+    #tf2
+    #tf2_sensor_msgs
+    #message_runtime
+    #message_generation
 )
 
 find_package(CUDA)
@@ -45,30 +45,28 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 find_package(Boost REQUIRED COMPONENTS filesystem)
 
-find_package(FLANN)
-
 # dynamic reconfigure
-generate_dynamic_reconfigure_options(
-    cfg/MCL.cfg
-    cfg/RING.cfg
-)
+# generate_dynamic_reconfigure_options(
+#     cfg/MCL.cfg
+#     cfg/RING.cfg
+#)
 
-catkin_package(
-  CATKIN_DEPENDS
-    diagnostic_updater
-    dynamic_reconfigure
-    geometry_msgs
-    roscpp
-    sensor_msgs
-    visualization_msgs
-    nav_msgs
-    tf2
-    tf2_sensor_msgs
-    message_runtime
-    message_generation
-   INCLUDE_DIRS include
-   DEPENDS OpenMP
-)
+# catkin_package(
+#   CATKIN_DEPENDS
+#     diagnostic_updater
+#     dynamic_reconfigure
+#     geometry_msgs
+#     roscpp
+#     sensor_msgs
+#     visualization_msgs
+#     nav_msgs
+#     tf2
+#     tf2_sensor_msgs
+#     message_runtime
+#     message_generation
+#    INCLUDE_DIRS include
+#    DEPENDS OpenMP
+# )
 
 ###########
 ## Build ##
@@ -78,7 +76,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
+  #${catkin_INCLUDE_DIRS}
 )
 
 set(TSDF_LOC_SRC 
@@ -104,12 +102,11 @@ include_directories(${HDF5_INCLUDE_DIRS})
 function(MAKE_NODE NAME CPP)
   add_executable(${NAME} ${CPP} src/util/runtime_evaluator.cpp)
 
-  add_dependencies(${NAME} ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS})
-
   target_compile_options(${NAME} PRIVATE ${OpenMP_FLAGS})
 
+  ament_target_dependencies(${NAME})
+
   target_link_libraries(${NAME}
-    ${catkin_LIBRARIES}
     ${OpenMP_LIBS}
     ${HDF5_LIBRARIES}
     ${HDF5_HL_LIBRARIES}
@@ -137,20 +134,18 @@ add_executable(mcl_3d src/mcl_3d.cpp ${TSDF_LOC_SRC})
 
 if (CUDA_FOUND)
 
-add_dependencies(mcl_3d ${PROJECT_NAME}_gencfg CUDAEvaluator)
-target_link_libraries(mcl_3d ${catkin_LIBRARIES} ${Boost_LIBRARIES} CUDAEvaluator)
+add_dependencies(mcl_3d CUDAEvaluator)
+target_link_libraries(mcl_3d ${Boost_LIBRARIES} CUDAEvaluator)
 
 else (CUDA_FOUND)
 
-add_dependencies(mcl_3d ${PROJECT_NAME}_gencfg)
-target_link_libraries(mcl_3d ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(mcl_3d ${Boost_LIBRARIES})
 
 endif (CUDA_FOUND)
 
 target_compile_options(mcl_3d PRIVATE ${OpenMP_FLAGS})
 
 target_link_libraries(mcl_3d 
-    ${catkin_LIBRARIES}
     ${OpenMP_LIBS}
     ${HDF5_LIBRARIES}
     ${HDF5_HL_LIBRARIES}
@@ -161,20 +156,18 @@ add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.c
 
 if (CUDA_FOUND)
 
-add_dependencies(num_particles_eval ${PROJECT_NAME}_gencfg CUDAEvaluator)
-target_link_libraries(num_particles_eval ${catkin_LIBRARIES} ${Boost_LIBRARIES} CUDAEvaluator)
+add_dependencies(num_particles_eval CUDAEvaluator)
+target_link_libraries(num_particles_eval ${Boost_LIBRARIES} CUDAEvaluator)
 
 else (CUDA_FOUND)
 
-add_dependencies(num_particles_eval ${PROJECT_NAME}_gencfg)
-target_link_libraries(num_particles_eval ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(num_particles_eval ${Boost_LIBRARIES})
 
 endif (CUDA_FOUND)
 
 target_compile_options(num_particles_eval PRIVATE ${OpenMP_FLAGS})
 
 target_link_libraries(num_particles_eval
-    ${catkin_LIBRARIES}
     ${OpenMP_LIBS}
     ${HDF5_LIBRARIES}
     ${HDF5_HL_LIBRARIES}
@@ -194,13 +187,12 @@ MAKE_NODE(tsdf_vis src/tsdf_vis.cpp)
 if (CUDA_FOUND)
 
 add_executable(snap_shot_node src/snap_shot_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
-add_dependencies(snap_shot_node ${PROJECT_NAME}_gencfg CUDAEvaluator)
-target_link_libraries(snap_shot_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} CUDAEvaluator)
+add_dependencies(snap_shot_node CUDAEvaluator)
+target_link_libraries(snap_shot_node ${Boost_LIBRARIES} CUDAEvaluator)
 
 target_compile_options(snap_shot_node PRIVATE ${OpenMP_FLAGS})
 
 target_link_libraries(snap_shot_node
-    ${catkin_LIBRARIES}
     ${OpenMP_LIBS}
     ${HDF5_LIBRARIES}
     ${HDF5_HL_LIBRARIES}
@@ -208,13 +200,12 @@ target_link_libraries(snap_shot_node
 )
 
 add_executable(snap_vis_node src/snap_vis_node.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
-add_dependencies(snap_vis_node ${PROJECT_NAME}_gencfg CUDAEvaluator)
-target_link_libraries(snap_vis_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} CUDAEvaluator)
+add_dependencies(snap_vis_node CUDAEvaluator)
+target_link_libraries(snap_vis_node ${Boost_LIBRARIES} CUDAEvaluator)
 
 target_compile_options(snap_vis_node PRIVATE ${OpenMP_FLAGS})
 
 target_link_libraries(snap_vis_node
-    ${catkin_LIBRARIES}
     ${OpenMP_LIBS}
     ${HDF5_LIBRARIES}
     ${HDF5_HL_LIBRARIES}
@@ -222,3 +213,5 @@ target_link_libraries(snap_vis_node
 )
 
 endif (CUDA_FOUND)
+
+ament_package()

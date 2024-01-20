@@ -18,7 +18,8 @@
 
   <author email="meisolt@uos.de">Marc Eisoldt</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
   <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -50,5 +51,6 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
