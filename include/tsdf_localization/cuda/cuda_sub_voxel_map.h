@@ -4,7 +4,7 @@
 #include <tsdf_localization/util/util.h>
 #include <tsdf_localization/cuda/cuda_util.h>
 #include <vector>
-
+#include <cmath>
 
 
 namespace tsdf_localization

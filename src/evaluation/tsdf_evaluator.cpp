@@ -1,13 +1,14 @@
 #include <tsdf_localization/evaluation/tsdf_evaluator.h>
 
-#include <sensor_msgs/point_cloud2_iterator.h>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
 
-#include <tf2_ros/transform_listener.hpp>
-#include <tf2_ros/transform_broadcaster.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/buffer.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <geometry_msgs/msg/point.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 
 #include <tsdf_localization/evaluation/model/evaluation_model.h>
 
@@ -26,7 +27,7 @@ static double invalid_rate = 0;
 
 FLOAT_T TSDFEvaluator::evaluatePose(FLOAT_T* pose, const std::vector<CudaPoint> cloud, EvaluationModel& model) const
 {
-    geometry_msgs::Point point;
+    geometry_msgs::msg::Point point;
 
     FLOAT_T eval_sum = 0.0;
 
@@ -75,7 +76,7 @@ FLOAT_T TSDFEvaluator::evaluatePose(FLOAT_T* pose, const std::vector<CudaPoint> 
     return eval_sum;
 }
 
-geometry_msgs::PoseWithCovariance TSDFEvaluator::evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16], bool use_cuda)
+geometry_msgs::msg::PoseWithCovariance TSDFEvaluator::evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16], bool use_cuda)
 {
   if (use_cuda)
   {
@@ -84,7 +85,7 @@ geometry_msgs::PoseWithCovariance TSDFEvaluator::evaluate(std::vector<Particle>&
 
   FLOAT_T weight_sum = 0.0;
 
-  std::array<geometry_msgs::Pose, OMP_THREADS> laser_pose;
+  std::array<geometry_msgs::msg::Pose, OMP_THREADS> laser_pose;
   std::array<tf2::Transform, OMP_THREADS> tf_pose;
 
   int threads = OMP_THREADS;
@@ -164,7 +165,7 @@ geometry_msgs::PoseWithCovariance TSDFEvaluator::evaluate(std::vector<Particle>&
   // Normalize weights and estimate current robot pose
 
   Particle average_particle;
-  geometry_msgs::PoseWithCovariance average_pose;
+  geometry_msgs::msg::PoseWithCovariance average_pose;
 
   FLOAT_T variance_x = 0.0;
   FLOAT_T variance_y = 0.0;
@@ -244,24 +245,26 @@ geometry_msgs::PoseWithCovariance TSDFEvaluator::evaluate(std::vector<Particle>&
   return average_pose;
 }
 
-geometry_msgs::PoseWithCovariance TSDFEvaluator::evaluateParticles(ParticleCloud& particle_cloud, const sensor_msgs::PointCloud2& real_cloud, const std::string& robot_frame, const std::string& scan_frame, bool use_cuda, bool ignore_tf)
+geometry_msgs::msg::PoseWithCovariance TSDFEvaluator::evaluateParticles(ParticleCloud& particle_cloud, const sensor_msgs::msg::PointCloud2& real_cloud, const std::string& robot_frame, const std::string& scan_frame, bool use_cuda, bool ignore_tf)
 {
   FLOAT_T tf_matrix[16];
 
   if (!ignore_tf)
   {
-    static tf2_ros::Buffer tf_buffer;
+    static tf2::BufferCore tf_buffer;
     static tf2_ros::TransformListener tf_listener(tf_buffer);
 
-    geometry_msgs::TransformStamped scan_to_base; 
+    geometry_msgs::msg::TransformStamped scan_to_base; 
 
     try
     {
-      scan_to_base = tf_buffer.lookupTransform(robot_frame, scan_frame, real_cloud.header.stamp, ros::Duration(0.5));
+      // TODO: Pass 0.5 secs
+      //scan_to_base = tf_buffer.lookupTransform(robot_frame, scan_frame, real_cloud.header.stamp);
+      scan_to_base = tf_buffer.lookupTransform(robot_frame, scan_frame, tf2::TimePointZero);
     }
     catch (tf2::TransformException& e)
     {
-      ROS_ERROR_STREAM("Couldn't transform robot frame to scan frame: " << e.what());
+      std::cerr << "Couldn't transform robot frame to scan frame: " << e.what() << std::endl;
       throw;
     }
 
