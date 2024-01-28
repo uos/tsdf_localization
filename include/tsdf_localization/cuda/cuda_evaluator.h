@@ -4,7 +4,7 @@
 #include <tsdf_localization/map/device_map.h>
 #include <tsdf_localization/cuda/cuda_sub_voxel_map.h>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <geometry_msgs/msg/pose_with_covariance.h>
+#include <geometry_msgs/msg/pose_with_covariance.hpp>
 
 #include <memory>
 #include <tuple>

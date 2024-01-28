@@ -3,10 +3,10 @@
 
 #include <tsdf_localization/cuda/cuda_util.h>
 
-#include <sensor_msgs/point_cloud2_iterator.h>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
 
 #include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include <tsdf_localization/util/runtime_evaluator.h>
 #include <map>
@@ -75,7 +75,7 @@ inline FLOAT_T particle_dist(const Particle& particle1, const Particle& particle
     return sqrt((dx * dx + dy * dy + dz * dz));
 } 
 
-geometry_msgs::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const sensor_msgs::PointCloud2& real_cloud, FLOAT_T tf_matrix[16])
+geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const sensor_msgs::msg::PointCloud2& real_cloud, FLOAT_T tf_matrix[16])
 {
   sensor_msgs::PointCloud2ConstIterator<float> iter_x(real_cloud, "x");
   sensor_msgs::PointCloud2ConstIterator<int> iter_ring(real_cloud, "ring");
@@ -115,13 +115,13 @@ geometry_msgs::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>&
   return evaluate(particles, reduced_points, tf_matrix);
 }
 
-geometry_msgs::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16])
+geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16])
 {
   static auto& eval = RuntimeEvaluator::get_instance();
 
   if (points.size() == 0)
   {
-    return geometry_msgs::PoseWithCovariance();
+    return geometry_msgs::msg::PoseWithCovariance();
   }
 
   eval.start("init_kernel");
@@ -369,7 +369,7 @@ geometry_msgs::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>&
   }
 
   Particle average_particle;
-  geometry_msgs::PoseWithCovariance average_pose;
+  geometry_msgs::msg::PoseWithCovariance average_pose;
 
   FLOAT_T variance_x = 0.0;
   FLOAT_T variance_y = 0.0;
