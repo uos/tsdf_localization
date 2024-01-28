@@ -1,3 +1,5 @@
+#include <tuple>
+
 namespace tsdf_localization
 {
 

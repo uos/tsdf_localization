@@ -144,30 +144,22 @@ set(LIB_TYPE STATIC)
 cuda_add_library(CUDAEvaluator ${LIB_TYPE} src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/runtime_evaluator.cpp)
 target_link_libraries(CUDAEvaluator ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
 ament_target_dependencies(CUDAEvaluator
-    rclcpp
-    sensor_msgs
-    geometry_msgs
-    visualization_msgs
-    nav_msgs
-    tf2_sensor_msgs 
-    tf2_ros
-    tf2_geometry_msgs
-    std_srvs
+  sensor_msgs
+  geometry_msgs
+  tf2_sensor_msgs 
+  tf2_ros
+  tf2_geometry_msgs
 )
 
-cuda_add_executable(cuda_test_eval src/cuda/cuda_test_eval.cu src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/mcl_file.cpp src/util/runtime_evaluator.cpp)
-target_link_libraries(cuda_test_eval ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
-ament_target_dependencies(cuda_test_eval
-    rclcpp
-    sensor_msgs
-    geometry_msgs
-    visualization_msgs
-    nav_msgs
-    tf2_sensor_msgs 
-    tf2_ros
-    tf2_geometry_msgs
-    std_srvs
-)
+# cuda_add_executable(cuda_test_eval src/cuda/cuda_test_eval.cu src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/mcl_file.cpp src/util/runtime_evaluator.cpp)
+# target_link_libraries(cuda_test_eval ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
+# ament_target_dependencies(cuda_test_eval
+#   sensor_msgs
+#   geometry_msgs
+#   tf2_sensor_msgs 
+#   tf2_ros
+#   tf2_geometry_msgs
+# )
 
 endif(CUDA_FOUND)
 

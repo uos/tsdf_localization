@@ -9,7 +9,6 @@
 
 namespace tsdf_localization
 {
-
 using OCC_T = int;
 
 constexpr FLOAT_T sub_voxel_size = 1.0;

@@ -3,10 +3,10 @@
 
 #include <tsdf_localization/cuda/cuda_util.h>
 
-#include <sensor_msgs/point_cloud2_iterator.hpp>
+// #include <sensor_msgs/point_cloud2_iterator.hpp>
 
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+// #include <tf2/LinearMath/Quaternion.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include <tsdf_localization/util/runtime_evaluator.h>
 #include <map>
@@ -75,53 +75,53 @@ inline FLOAT_T particle_dist(const Particle& particle1, const Particle& particle
     return sqrt((dx * dx + dy * dy + dz * dz));
 } 
 
-geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const sensor_msgs::msg::PointCloud2& real_cloud, FLOAT_T tf_matrix[16])
-{
-  sensor_msgs::PointCloud2ConstIterator<float> iter_x(real_cloud, "x");
-  sensor_msgs::PointCloud2ConstIterator<int> iter_ring(real_cloud, "ring");
+// geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const sensor_msgs::msg::PointCloud2& real_cloud, FLOAT_T tf_matrix[16])
+// {
+//   sensor_msgs::PointCloud2ConstIterator<float> iter_x(real_cloud, "x");
+//   sensor_msgs::PointCloud2ConstIterator<int> iter_ring(real_cloud, "ring");
 
-  std::vector<CudaPoint> points;
-  points.reserve(real_cloud.width);
+//   std::vector<CudaPoint> points;
+//   points.reserve(real_cloud.width);
   
-  std::multimap<int, CudaPoint> map;
+//   std::multimap<int, CudaPoint> map;
 
-  for (; iter_x != iter_x.end(); ++iter_x)
-  {
-      map.insert(std::pair<int, CudaPoint>(iter_ring[0], {iter_x[0], iter_x[1], iter_x[2]}));
+//   for (; iter_x != iter_x.end(); ++iter_x)
+//   {
+//       map.insert(std::pair<int, CudaPoint>(iter_ring[0], {iter_x[0], iter_x[1], iter_x[2]}));
 
-      ++iter_ring;
-  }
+//       ++iter_ring;
+//   }
 
-  for (const auto& entry : map)
-  {
-    points.push_back(entry.second);
-  }
+//   for (const auto& entry : map)
+//   {
+//     points.push_back(entry.second);
+//   }
 
-  std::unordered_set<CudaPoint, hash> point_set;
+//   std::unordered_set<CudaPoint, hash> point_set;
 
-  for (const auto& point : points)
-  {
-      CudaPoint center = {static_cast<float>(std::floor(point.x / 0.064) * 0.064 + 0.032), 
-                          static_cast<float>(std::floor(point.y / 0.064) * 0.064 + 0.032), 
-                          static_cast<float>(std::floor(point.z / 0.064) * 0.064 + 0.032)};
+//   for (const auto& point : points)
+//   {
+//       CudaPoint center = {static_cast<float>(std::floor(point.x / 0.064) * 0.064 + 0.032), 
+//                           static_cast<float>(std::floor(point.y / 0.064) * 0.064 + 0.032), 
+//                           static_cast<float>(std::floor(point.z / 0.064) * 0.064 + 0.032)};
       
-      point_set.insert(center);
-  }
+//       point_set.insert(center);
+//   }
 
-  std::vector<CudaPoint> reduced_points;
-  reduced_points.resize(point_set.size());
-  std::copy(point_set.begin(), point_set.end(), reduced_points.begin());
+//   std::vector<CudaPoint> reduced_points;
+//   reduced_points.resize(point_set.size());
+//   std::copy(point_set.begin(), point_set.end(), reduced_points.begin());
 
-  return evaluate(particles, reduced_points, tf_matrix);
-}
+//   return evaluate(particles, reduced_points, tf_matrix);
+// }
 
-geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16])
+Particle CudaEvaluator::evaluate(std::vector<Particle>& particles, const std::vector<CudaPoint>& points, FLOAT_T tf_matrix[16])
 {
   static auto& eval = RuntimeEvaluator::get_instance();
 
   if (points.size() == 0)
   {
-    return geometry_msgs::msg::PoseWithCovariance();
+    return Particle();
   }
 
   eval.start("init_kernel");
@@ -369,15 +369,15 @@ geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Parti
   }
 
   Particle average_particle;
-  geometry_msgs::msg::PoseWithCovariance average_pose;
+  // geometry_msgs::msg::PoseWithCovariance average_pose;
 
-  FLOAT_T variance_x = 0.0;
-  FLOAT_T variance_y = 0.0;
-  FLOAT_T variance_z = 0.0;
+  // FLOAT_T variance_x = 0.0;
+  // FLOAT_T variance_y = 0.0;
+  // FLOAT_T variance_z = 0.0;
 
-  FLOAT_T variance_roll = 0.0;
-  FLOAT_T variance_pitch = 0.0;
-  FLOAT_T variance_yaw = 0.0;
+  // FLOAT_T variance_roll = 0.0;
+  // FLOAT_T variance_pitch = 0.0;
+  // FLOAT_T variance_yaw = 0.0;
 
   dim3 block(blocksize, 1);
   dim3 grid((particles.size() + block.x - 1) / block.x, 1);
@@ -407,24 +407,24 @@ geometry_msgs::msg::PoseWithCovariance CudaEvaluator::evaluate(std::vector<Parti
     particles[index].second = new_weights_[index];
   }
 
-  average_pose.pose.position.x = average_particle.first[0];
-  average_pose.pose.position.y = average_particle.first[1];
-  average_pose.pose.position.z = average_particle.first[2];
+  // average_pose.pose.position.x = average_particle.first[0];
+  // average_pose.pose.position.y = average_particle.first[1];
+  // average_pose.pose.position.z = average_particle.first[2];
 
-  tf2::Quaternion tf_quaternion;
-  tf_quaternion.setRPY(average_particle.first[3] , average_particle.first[4], average_particle.first[5]);
-  tf2::convert(tf_quaternion, average_pose.pose.orientation);
+  // tf2::Quaternion tf_quaternion;
+  // tf_quaternion.setRPY(average_particle.first[3] , average_particle.first[4], average_particle.first[5]);
+  // tf2::convert(tf_quaternion, average_pose.pose.orientation);
 
-  average_pose.covariance.data()[0] = variance_x;
-  average_pose.covariance.data()[7] = variance_y;
-  average_pose.covariance.data()[14] = variance_z;
-  average_pose.covariance.data()[21] = variance_roll;
-  average_pose.covariance.data()[28] = variance_pitch;
-  average_pose.covariance.data()[35] = variance_yaw;
+  // average_pose.covariance.data()[0] = variance_x;
+  // average_pose.covariance.data()[7] = variance_y;
+  // average_pose.covariance.data()[14] = variance_z;
+  // average_pose.covariance.data()[21] = variance_roll;
+  // average_pose.covariance.data()[28] = variance_pitch;
+  // average_pose.covariance.data()[35] = variance_yaw;
 
   eval.stop("weight_update");
 
-  return average_pose;
+  return average_particle;
 }
 
 CudaEvaluator::~CudaEvaluator()

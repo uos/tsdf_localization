@@ -1,10 +1,12 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#ifndef __CUDACC__
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 //#include <tf/tf.h>
 #include <nav_msgs/msg/occupancy_grid.hpp>
+#endif
 
 namespace tsdf_localization
 {
@@ -17,6 +19,8 @@ constexpr FLOAT_T INV_MAX_RANGE = 1.0 / MAX_RANGE;
 constexpr FLOAT_T A_HIT = 0.9;
 constexpr FLOAT_T A_RAND = 0.1;
 constexpr FLOAT_T A_MAX = 0.0;
+
+#ifndef __CUDACC__
 
 /**
  * @brief Extract the yaw (two dimensional rotation) from a given quaternion
@@ -74,6 +78,8 @@ geometry_msgs::msg::TransformStamped getMapToWorldTF(const nav_msgs::msg::MapMet
 geometry_msgs::msg::TransformStamped getWorldToMapTF(const nav_msgs::msg::MapMetaData& map_meta);
 
 void getAngleFromMat(const FLOAT_T mat[16], FLOAT_T& roll,  FLOAT_T& pitch,  FLOAT_T& yaw);
+
+#endif
 
 } // namespace tsdf_localization
 
