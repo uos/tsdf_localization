@@ -80,7 +80,34 @@ geometry_msgs::msg::PoseWithCovariance TSDFEvaluator::evaluate(std::vector<Parti
 {
   if (use_cuda)
   {
-    return cuda_evaluator_->evaluate(particles, points, tf_matrix);
+    auto average_particle = cuda_evaluator_->evaluate(particles, points, tf_matrix);
+    
+    geometry_msgs::msg::PoseWithCovariance average_pose;
+
+    FLOAT_T variance_x = 0.0;
+    FLOAT_T variance_y = 0.0;
+    FLOAT_T variance_z = 0.0;
+
+    FLOAT_T variance_roll = 0.0;
+    FLOAT_T variance_pitch = 0.0;
+    FLOAT_T variance_yaw = 0.0;
+
+    average_pose.pose.position.x = average_particle.first[0];
+    average_pose.pose.position.y = average_particle.first[1];
+    average_pose.pose.position.z = average_particle.first[2];
+
+    tf2::Quaternion tf_quaternion;
+    tf_quaternion.setRPY(average_particle.first[3] , average_particle.first[4], average_particle.first[5]);
+    tf2::convert(tf_quaternion, average_pose.pose.orientation);
+
+    average_pose.covariance.data()[0] = variance_x;
+    average_pose.covariance.data()[7] = variance_y;
+    average_pose.covariance.data()[14] = variance_z;
+    average_pose.covariance.data()[21] = variance_roll;
+    average_pose.covariance.data()[28] = variance_pitch;
+    average_pose.covariance.data()[35] = variance_yaw;
+
+    return average_pose;
   }
 
   FLOAT_T weight_sum = 0.0;
