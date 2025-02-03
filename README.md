@@ -43,6 +43,10 @@ Please reference the following papers when using `tsdf_localization` in your sci
 }
 ```
 
+The paper is availaible online here:
+- IEEE Xplore: https://ieeexplore.ieee.org/document/10473560
+- Arxiv (pre-print): https://arxiv.org/abs/2310.04172
+
 ## Nodes
 
 ### mcl_3d
