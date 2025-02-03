@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+preferred-citation:
+  title: "Towards 6D MCL for LiDARs in 3D TSDF Maps on Embedded Systems with GPUs"
+  doi: "10.1109/IRC59093.2023.00035"
+  year: "2023"
+  type: conference-paper
+  collection-title: "2023 Seventh IEEE International Conference on Robotic Computing (IRC)"
+  url: https://ieeexplore.ieee.org/document/10473560
+  codeurl: https://github.com/uos/tsdf_localization
+  authors:
+    - family-names: Eisoldt
+      given-names: Marc
+    - family-names: Mock
+      given-names: Alexander
+      orcid: 0009-0004-7800-9774
+    - family-names: Porrmann
+      given-names: Mario
+    - family-names: Wiemann
+      given-names: Thomas
+      orcid: 0000-0003-0710-872X
