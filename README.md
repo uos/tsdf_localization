@@ -32,7 +32,7 @@ A quick startup including how to use tsdf_localization within your package is sh
 
 Please reference the following papers when using `tsdf_localization` in your scientific work.
  
-```latex
+```bib
 @inproceedings{eisoldt2023,
   author={Eisoldt, Marc and Mock, Alexander and Porrmann, Mario and Wiemann, Thomas},
   booktitle={2023 Seventh IEEE International Conference on Robotic Computing (IRC)}, 
