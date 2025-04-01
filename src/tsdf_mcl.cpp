@@ -3,10 +3,10 @@
  * @author Marc Eisoldt (meisoldt@uni-osnabrueck.de)
  * @author Alexander Mock (amock@uni-osnabrueck.de)
  * 
- * @brief Node for an implementation of the global three dimensional Monte Carlo Localization with a three dimensional laser scanner and an odometrie estimation in a three dimensional TSDF map
+ * @brief Node for an implementation of the global three dimensional Monte Carlo Localization with a three dimensional laser scanner and an odometry estimation in a three dimensional TSDF map
  * 
- * @version 0.1
- * @date 2025-06-18
+ * @version 0.2
+ * @date 2025-04-01
  * 
  * @copyright Copyright (c) 2025
  */

@@ -1,13 +1,14 @@
 /**
  * @file tsdf_vis.cpp
  * @author Marc Eisoldt (meisoldt@uni-osnabrueck.de)
+ * @author Alexander Mock (amock@uos.de)
  * 
- * @brief Node that loads a given TSDF map in HDF5 file format and publishes it as cuba markers that can be visualized in RViz
+ * @brief Node that loads a given TSDF map in HDF5 file format and publishes it as markers that can be visualized in RViz
  * 
- * @version 0.1
- * @date 2022-06-18
+ * @version 0.2
+ * @date 2025-04-01
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2025
  */
 
 #include "ros/ros.h"
@@ -31,6 +32,8 @@
 using namespace tsdf_localization;
 
 std::string map_file_name = "ros_ws/tsdf_maps/sim_map.h5";
+
+
 
 void octoCallback(const visualization_msgs::MarkerArray::ConstPtr& marker_array)
 {
@@ -80,7 +83,8 @@ int main(int argc, char** argv)
     ros::Subscriber sub = nh.subscribe<visualization_msgs::MarkerArray>("/occupied_cells_vis_array", 1, octoCallback);
 
     std::vector<CudaPoint> free_map;
-    auto map = createTSDFMap<SubVoxelMap<FLOAT_T, FLOAT_T, 1>, FLOAT_T, FLOAT_T>(map_file_name, free_map);
+    using MapT = SubVoxelMap<FLOAT_T, FLOAT_T, 1>;
+    auto map = createTSDFMap<MapT, FLOAT_T, FLOAT_T>(map_file_name, free_map);
     
     // Fill the grid with the valid TSDF values of the map
     for (auto tag : g.listObjectNames())

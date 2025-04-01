@@ -297,6 +297,10 @@ if (CUDA_FOUND)
   )
 endif (CUDA_FOUND)
 
+rclcpp_components_register_node(tsdf_mcl_component 
+    PLUGIN "tsdf_localization::TSDFMCLNode" 
+    EXECUTABLE tsdf_mcl)
+
 install(TARGETS 
     tsdf_mcl_component
   ARCHIVE DESTINATION lib
@@ -304,9 +308,43 @@ install(TARGETS
   RUNTIME DESTINATION bin
 )
 
-rclcpp_components_register_node(tsdf_mcl_component 
-    PLUGIN "tsdf_localization::TSDFMCLNode" 
-    EXECUTABLE tsdf_mcl)
+
+# TSDF Viz Node
+add_library(tsdf_viz_component SHARED 
+  src/tsdf_viz.cpp)
+
+target_compile_options(tsdf_viz_component PRIVATE ${OpenMP_FLAGS})
+
+ament_target_dependencies(tsdf_viz_component 
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  geometry_msgs
+  visualization_msgs
+  nav_msgs
+  tf2_sensor_msgs
+  tf2_ros 
+  tf2_geometry_msgs 
+  std_srvs
+)
+
+target_link_libraries(tsdf_viz_component
+  ${OpenMP_LIBS}
+  ${HDF5_LIBRARIES}
+  ${HDF5_HL_LIBRARIES}
+  Eigen3::Eigen
+)
+
+rclcpp_components_register_node(tsdf_viz_component 
+    PLUGIN "tsdf_localization::TSDFVizNode" 
+    EXECUTABLE tsdf_viz)
+
+install(TARGETS 
+    tsdf_viz_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 # add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
 
@@ -337,6 +375,8 @@ rclcpp_components_register_node(tsdf_mcl_component
 # pkg_check_modules(LZ4 REQUIRED liblz4)
 
 # endif (CUDA_FOUND)
+
+
 
 # MAKE_NODE(tsdf_vis src/tsdf_vis.cpp)
 

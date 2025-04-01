@@ -2,6 +2,7 @@
 #define INTCONSTANT_H
 
 #include <tsdf_localization/cuda/cuda_util.h>
+#include <tsdf_localization/util/util.h>
 
 namespace int_tsdf_localization
 {
