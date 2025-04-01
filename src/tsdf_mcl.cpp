@@ -312,8 +312,8 @@ public:
     {
       rcl_interfaces::msg::IntegerRange range;
       range.from_value = 1;
-      range.to_value = 10000;
-      range.step = 10;
+      range.to_value = 100000;
+      range.step = 1;
       number_particles_pdesc.integer_range.push_back(range);
     };
     number_particles_ = this->declare_parameter<int>(number_particles_pdesc.name, 800, number_particles_pdesc);
@@ -391,24 +391,232 @@ public:
       rcl_interfaces::msg::FloatingPointRange range;
       range.from_value = 0.0;
       range.to_value = 2.0 * M_PI;
-      range.step = 0.05;
+      // range.step = 0.05;
       init_sigma_yaw_pdesc.floating_point_range.push_back(range);
     }
-    init_sigma_yaw_ = this->declare_parameter<double>(init_sigma_yaw_pdesc.name, 30.0 * M_PI / 180.0, init_sigma_yaw_pdesc);
+    init_sigma_yaw_ = this->declare_parameter<double>(init_sigma_yaw_pdesc.name, 0.5, init_sigma_yaw_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor delta_update_dist_pdesc;
+    delta_update_dist_pdesc.name = "resampling.delta_update_dist";
+    delta_update_dist_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    delta_update_dist_pdesc.description = "Moved distance at which a resampling step should executed";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 10.0;
+      delta_update_dist_pdesc.floating_point_range.push_back(range);
+    }
+    delta_update_dist_ = this->declare_parameter<double>(delta_update_dist_pdesc.name, 0.03, delta_update_dist_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor delta_update_angle_pdesc;
+    delta_update_angle_pdesc.name = "resampling.delta_update_angle";
+    delta_update_angle_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    delta_update_angle_pdesc.description = "Rotated angle at which a resampling step should executed (in radian)";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 2.0 * M_PI;
+      delta_update_angle_pdesc.floating_point_range.push_back(range);
+    }
+    delta_update_angle_ = this->declare_parameter<double>(delta_update_angle_pdesc.name, 0.1, delta_update_angle_pdesc);
 
 
-    // rcl_interfaces::msg::ParameterDescriptor init_sigma_yaw_pdesc;
-    // init_sigma_yaw_pdesc.name = "init_pitch_yaw";
-    // init_sigma_yaw_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // init_sigma_yaw_pdesc.description = "Initial sigma yaw";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 2.0 * M_PI;
-    //   range.step = 0.05;
-    //   init_sigma_yaw_pdesc.floating_point_range.push_back(range);
-    // }
-    // init_sigma_yaw_ = this->declare_parameter<double>(init_sigma_yaw_pdesc.name, 30.0 * M_PI / 180.0, init_sigma_yaw_pdesc);
+    // gen.add("use_cuda", bool_t, 0, "Using cuda for the sensor-update", True)
+    rcl_interfaces::msg::ParameterDescriptor use_cuda_pdesc;
+    use_cuda_pdesc.name = "use_cuda";
+    use_cuda_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    use_cuda_pdesc.description = "Use cuda for the sensor-update";
+    use_cuda_ = this->declare_parameter<bool>(use_cuda_pdesc.name, true, use_cuda_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_1_pdesc;
+    a_1_pdesc.name = "motion_update.a_1";
+    a_1_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_1_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_1_pdesc.floating_point_range.push_back(range);
+    }
+    a_1 = this->declare_parameter<double>(a_1_pdesc.name, 1.0, a_1_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_2_pdesc;
+    a_2_pdesc.name = "motion_update.a_2";
+    a_2_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_2_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_2_pdesc.floating_point_range.push_back(range);
+    }
+    a_2 = this->declare_parameter<double>(a_2_pdesc.name, 0.0, a_2_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_3_pdesc;
+    a_3_pdesc.name = "motion_update.a_3";
+    a_3_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_3_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_3_pdesc.floating_point_range.push_back(range);
+    }
+    a_3 = this->declare_parameter<double>(a_3_pdesc.name, 1.0, a_3_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_4_pdesc;
+    a_4_pdesc.name = "motion_update.a_4";
+    a_4_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_4_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_4_pdesc.floating_point_range.push_back(range);
+    }
+    a_4 = this->declare_parameter<double>(a_4_pdesc.name, 0.0, a_4_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_5_pdesc;
+    a_5_pdesc.name = "motion_update.a_5";
+    a_5_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_5_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_5_pdesc.floating_point_range.push_back(range);
+    }
+    a_5 = this->declare_parameter<double>(a_5_pdesc.name, 1.0, a_5_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_6_pdesc;
+    a_6_pdesc.name = "motion_update.a_6";
+    a_6_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_6_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_6_pdesc.floating_point_range.push_back(range);
+    }
+    a_6 = this->declare_parameter<double>(a_6_pdesc.name, 0.0, a_6_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_7_pdesc;
+    a_7_pdesc.name = "motion_update.a_7";
+    a_7_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_7_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_7_pdesc.floating_point_range.push_back(range);
+    }
+    a_7 = this->declare_parameter<double>(a_7_pdesc.name, 0.0, a_7_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_8_pdesc;
+    a_8_pdesc.name = "motion_update.a_8";
+    a_8_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_8_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_8_pdesc.floating_point_range.push_back(range);
+    }
+    a_8 = this->declare_parameter<double>(a_8_pdesc.name, 1.0, a_8_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_9_pdesc;
+    a_9_pdesc.name = "motion_update.a_9";
+    a_9_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_9_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_9_pdesc.floating_point_range.push_back(range);
+    }
+    a_9 = this->declare_parameter<double>(a_9_pdesc.name, 0.0, a_9_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_10_pdesc;
+    a_10_pdesc.name = "motion_update.a_10";
+    a_10_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_10_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_10_pdesc.floating_point_range.push_back(range);
+    }
+    a_10 = this->declare_parameter<double>(a_10_pdesc.name, 1.0, a_10_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_11_pdesc;
+    a_11_pdesc.name = "motion_update.a_11";
+    a_11_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_11_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_11_pdesc.floating_point_range.push_back(range);
+    }
+    a_11 = this->declare_parameter<double>(a_11_pdesc.name, 0.0, a_11_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_12_pdesc;
+    a_12_pdesc.name = "motion_update.a_12";
+    a_12_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_12_pdesc.description = "Parameter for the motion model";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 30.0;
+      a_12_pdesc.floating_point_range.push_back(range);
+    }
+    a_12 = this->declare_parameter<double>(a_12_pdesc.name, 1.0, a_12_pdesc);
+
+    
+    // gen.add("lin_scale", double_t, 0, "Linear scale of the motion update that only applies noise to the particles", 0.1, 0.0, 10.0)
+    // gen.add("ang_scale", double_t, 0, "Angular scale of the motion update that only applies noise to the particles", 0.1, 0.0, 10.0)
+
+    rcl_interfaces::msg::ParameterDescriptor lin_scale_pdesc;
+    lin_scale_pdesc.name = "motion_update.lin_scale";
+    lin_scale_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;
+    lin_scale_pdesc.description = "Linear scale of the motion update that only applies noise to the particles";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 10.0;
+      lin_scale_pdesc.floating_point_range.push_back(range);
+    }
+    lin_scale_ = this->declare_parameter<double>(lin_scale_pdesc.name, 0.1, lin_scale_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor ang_scale_pdesc;
+    ang_scale_pdesc.name = "motion_update.ang_scale";
+    ang_scale_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;
+    ang_scale_pdesc.description = "Angular scale of the motion update that only applies noise to the particles";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value =  0.0;
+      range.to_value   = 10.0;
+      ang_scale_pdesc.floating_point_range.push_back(range);
+    }
+    ang_scale_ = this->declare_parameter<double>(ang_scale_pdesc.name, 0.1, ang_scale_pdesc);
+
+
+    // enum hack
+    rcl_interfaces::msg::ParameterDescriptor evaluation_naiv_pdesc;
+    evaluation_naiv_pdesc.name = "sensor_update.evaluation.naiv";
+    evaluation_naiv_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
+    evaluation_naiv_pdesc.description = "Use naiv range evaluation";
+    this->declare_parameter<bool>(evaluation_naiv_pdesc.name, false, evaluation_naiv_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor evaluation_likelihood_pdesc;
+    evaluation_likelihood_pdesc.name = "sensor_update.evaluation.likelihood";
+    evaluation_likelihood_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
+    evaluation_likelihood_pdesc.description = "Use likelihood range evaluation";
+    this->declare_parameter<bool>(evaluation_likelihood_pdesc.name, true, evaluation_likelihood_pdesc);
+
+    // evaluation_enum = gen.enum([ gen.const("Naiv",      int_t, 0, "Naiv range evaluation"),
+    //   gen.const("Likelihood",     int_t, 1, "Likelihood range evaluation")],
+    //   "An enum to set range evaluation model")
   }
 
   void parameterCallback()
@@ -426,6 +634,8 @@ public:
   void initialPoseCallback(
     const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr& pose_with_covariance)
   {
+    number_particles_ = this->get_parameter("number_particles").as_int();
+
     initial_pose_ = pose_with_covariance->pose.pose;
 
     initial_pose_.position.z = -0.1;
@@ -443,6 +653,8 @@ public:
     const std::shared_ptr<std_srvs::srv::Empty::Request> req,
     const std::shared_ptr<std_srvs::srv::Empty::Response> res)
   {
+    number_particles_ = this->get_parameter("number_particles").as_int();
+
     global_initialized_ = true;
     std::cout << "Global localization triggered!" << std::endl;
   }
@@ -457,7 +669,7 @@ public:
     const nav_msgs::msg::Odometry::ConstSharedPtr& odom,
     const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud)
   { 
-    RCLCPP_INFO(this->get_logger(), "scanOdomCallback!");
+    // RCLCPP_INFO(this->get_logger(), "scanOdomCallback!");
     static tf2::BufferCore tf_buffer;
     static tf2_ros::TransformListener tf_listener(tf_buffer);
 
@@ -483,27 +695,26 @@ public:
     }
     else 
     { // Resample particles
-      RCLCPP_INFO(this->get_logger(), "ELSE!");
+      // RCLCPP_INFO(this->get_logger(), "ELSE!");
       eval.start("motion update");
       
       if(ignore_motion_)
       {
-        RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: ignore");
+        // RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: ignore");
         particle_cloud_.motionUpdate(lin_scale_, ang_scale_);
       }
       else
       {
         if(use_imu_)
         {
-          RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: imu");
+          // RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: imu");
           ImuAccumulator::Data imu_data;
           imu_acc_.getAndResetData(imu_data);
           particle_cloud_.motionUpdate(lin_scale_, imu_data);
         }
         else
         {
-          RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: odom msg");
-          
+          // RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: odom msg");
           particle_cloud_.motionUpdate(*odom);
         }
       }
@@ -511,7 +722,7 @@ public:
       eval.stop("motion update");
 
 
-      RCLCPP_INFO_STREAM(this->get_logger(), "SENSOR UPDATE ? " << particle_cloud_.refDist() << " >= " << delta_update_dist_ << " || " << particle_cloud_.refAngle() << " >= " << delta_update_angle_);
+      // RCLCPP_INFO_STREAM(this->get_logger(), "SENSOR UPDATE ? " << particle_cloud_.refDist() << " >= " << delta_update_dist_ << " || " << particle_cloud_.refAngle() << " >= " << delta_update_angle_);
       if (ignore_motion_ || use_imu_ || particle_cloud_.refDist() >= delta_update_dist_ || particle_cloud_.refAngle() >= delta_update_angle_)
       {
         particle_cloud_.resetRef();
@@ -532,7 +743,7 @@ public:
             model = std::make_shared<OMPLikelihoodEvaluation>(100000);
         }
 
-        RCLCPP_INFO(this->get_logger(), "SENSOR UPDATE");
+        // RCLCPP_INFO(this->get_logger(), "SENSOR UPDATE");
         eval.start("sensor update");
 
         try
@@ -579,7 +790,7 @@ public:
 
         eval.stop("sensor update");
 
-        RCLCPP_INFO(this->get_logger(), "SENSOR UPDATE END");
+        // RCLCPP_INFO(this->get_logger(), "SENSOR UPDATE END");
 
         ss_stamp << cloud->header.stamp.sec << "\n";
 
