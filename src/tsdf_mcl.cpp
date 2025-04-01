@@ -177,7 +177,7 @@ public:
       reduction_cell_size_pdesc.name = "reduction_cell_size";
       reduction_cell_size_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
       reduction_cell_size_pdesc.description = "Reduction cell size";
-      reduction_cell_size_ = this->declare_parameter<double>(max_range_pdesc.name, 0.064, max_range_pdesc);
+      reduction_cell_size_ = this->declare_parameter<double>(reduction_cell_size_pdesc.name, 0.064, reduction_cell_size_pdesc);
 
       rcl_interfaces::msg::ParameterDescriptor print_runtime_stats_pdesc; 
       print_runtime_stats_pdesc.name = "print_runtime_stats";
