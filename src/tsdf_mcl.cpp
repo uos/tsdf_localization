@@ -1,13 +1,14 @@
 /**
- * @file mcl_3d.cpp
+ * @file tsdf_mcl.cpp
  * @author Marc Eisoldt (meisoldt@uni-osnabrueck.de)
+ * @author Alexander Mock (amock@uni-osnabrueck.de)
  * 
  * @brief Node for an implementation of the global three dimensional Monte Carlo Localization with a three dimensional laser scanner and an odometrie estimation in a three dimensional TSDF map
  * 
  * @version 0.1
- * @date 2022-06-18
+ * @date 2025-06-18
  * 
- * @copyright Copyright (c) 2022
+ * @copyright Copyright (c) 2025
  */
 
 #include <rclcpp/rclcpp.hpp>
@@ -60,126 +61,131 @@
 
 #include <tsdf_localization/util/imu_accumulator.h>
 
-using namespace tsdf_localization;
 using namespace std::chrono_literals;
 
-class TSDFLocalization : public rclcpp::Node
+namespace tsdf_localization
+{
+
+class TSDFMCLNode : public rclcpp::Node
 {
 public:
-  TSDFLocalization() : Node("mcl")
+  TSDFMCLNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) 
+  : Node("tsdf_mcl", options)
   {
-      std::cout << "Create TSDF evaluator..." << std::endl;
-  
-      float sigma = SIGMA;
-      float a_hit = A_HIT;
-      float a_rand = A_RAND;
-      float a_max = A_MAX;
-      float max_range = MAX_RANGE;
+    std::cout << "Create TSDF MCL Node..." << std::endl;
 
-      // TODO: Init params
+    float sigma = SIGMA;
+    float a_hit = A_HIT;
+    float a_rand = A_RAND;
+    float a_max = A_MAX;
+    float max_range = MAX_RANGE;
 
-      // std::string cloud_topic;
-      // std::string imu_topic;
+    // TODO: Init params
 
-      // nh_p_->getParam("map_file", map_file_name_);
-      // nh_p_->getParam("per_point", per_point_);
-      // nh_p_->getParam("init_global", init_global_);
-      // nh_p_->getParam("a_hit", a_hit);
-      // nh_p_->getParam("a_rand", a_rand);
-      // nh_p_->getParam("a_max", a_max);
-      // nh_p_->getParam("max_range", max_range);
-      // nh_p_->getParam("use_imu", use_imu_);
-      // nh_p_->getParam("use_os", use_os_);
-      // nh_p_->getParam("ignore_motion", ignore_motion_);
-      // nh_p_->getParam("use_best_pose", use_best_pose_);
-      // nh_p_->getParam("reduction_cell_size", reduction_cell_size_);
-      // nh_p_->getParam("print_runtime_stats", print_runtime_stats_);
+    // std::string cloud_topic;
+    // std::string imu_topic;
 
-      
-      // geometry_msgs::Transform calib_pose;
-      // calib_pose.rotation.w = 1.0;
+    // nh_p_->getParam("map_file", map_file_name_);
+    // nh_p_->getParam("per_point", per_point_);
+    // nh_p_->getParam("init_global", init_global_);
+    // nh_p_->getParam("a_hit", a_hit);
+    // nh_p_->getParam("a_rand", a_rand);
+    // nh_p_->getParam("a_max", a_max);
+    // nh_p_->getParam("max_range", max_range);
+    // nh_p_->getParam("use_imu", use_imu_);
+    // nh_p_->getParam("use_os", use_os_);
+    // nh_p_->getParam("ignore_motion", ignore_motion_);
+    // nh_p_->getParam("use_best_pose", use_best_pose_);
+    // nh_p_->getParam("reduction_cell_size", reduction_cell_size_);
+    // nh_p_->getParam("print_runtime_stats", print_runtime_stats_);
 
-      // nh_p_->getParam("q_x", calib_pose.rotation.x);
-      // nh_p_->getParam("q_y", calib_pose.rotation.y);
-      // nh_p_->getParam("q_z", calib_pose.rotation.z);
-      // nh_p_->getParam("q_w", calib_pose.rotation.w);
+    
+    // geometry_msgs::Transform calib_pose;
+    // calib_pose.rotation.w = 1.0;
 
-      // nh_p_->getParam("p_x", calib_pose.translation.x);
-      // nh_p_->getParam("p_y", calib_pose.translation.y);
-      // nh_p_->getParam("p_z", calib_pose.translation.z);
-      
-      // nh_p_->getParam("robot_frame", robot_frame_);
-      // nh_p_->getParam("odom_frame", odom_frame_);
-      // nh_p_->getParam("map_frame", map_frame_);
+    // nh_p_->getParam("q_x", calib_pose.rotation.x);
+    // nh_p_->getParam("q_y", calib_pose.rotation.y);
+    // nh_p_->getParam("q_z", calib_pose.rotation.z);
+    // nh_p_->getParam("q_w", calib_pose.rotation.w);
 
-      auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(map_file_name_, free_map_, sigma);
-      
-      std::cout << "Reduction cell size is: " << reduction_cell_size_ << std::endl;
-      tsdf_evaluator_ptr_.reset(new TSDFEvaluator(map, per_point_, a_hit, a_rand, a_max, max_range, reduction_cell_size_));
-      std::cout << "TSDF evaluator created!" << std::endl;
+    // nh_p_->getParam("p_x", calib_pose.translation.x);
+    // nh_p_->getParam("p_y", calib_pose.translation.y);
+    // nh_p_->getParam("p_z", calib_pose.translation.z);
+    
+    // nh_p_->getParam("robot_frame", robot_frame_);
+    // nh_p_->getParam("odom_frame", odom_frame_);
+    // nh_p_->getParam("map_frame", map_frame_);
 
-      if (use_imu_)
-      {
-        std::cout << "Use IMU for motion update..." << std::endl;
-      }
-      else if (!ignore_motion_)
-      {
-        std::cout << "Use odometry for motion update..." << std::endl;
-      }
-      else
-      {
-        std::cout << "Not using any sensor for motion update..." << std::endl;
-      }
+    auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(map_file_name_, free_map_, sigma);
+    
+    std::cout << "Reduction cell size is: " << reduction_cell_size_ << std::endl;
+    tsdf_evaluator_ptr_ = std::make_shared<TSDFEvaluator>(
+      map, per_point_, a_hit, a_rand, a_max, max_range, reduction_cell_size_
+    );
+    std::cout << "TSDF evaluator created!" << std::endl;
 
-      resampler_ptr_.reset(new ResidualSystematicResampler());
-      
-      ss_stamp << "stamp:\n";
+    if (use_imu_)
+    {
+      std::cout << "Use IMU for motion update..." << std::endl;
+    }
+    else if (!ignore_motion_)
+    {
+      std::cout << "Use odometry for motion update..." << std::endl;
+    }
+    else
+    {
+      std::cout << "Not using any sensor for motion update..." << std::endl;
+    }
 
-      // dynamic_reconfigure::Server<tsdf_localization::MCLConfig> server;
-      // dynamic_reconfigure::Server<tsdf_localization::MCLConfig>::CallbackType callbackType;
+    resampler_ptr_.reset(new ResidualSystematicResampler());
+    
+    ss_stamp << "stamp:\n";
 
-      // callbackType = boost::bind(&responseCallback, _1, _2);
-      // server.setCallback(callbackType);
+    // dynamic_reconfigure::Server<tsdf_localization::MCLConfig> server;
+    // dynamic_reconfigure::Server<tsdf_localization::MCLConfig>::CallbackType callbackType;
 
-      // Meaningfull initialization
-      initial_pose_.orientation.w = 1.0;
+    // callbackType = boost::bind(&responseCallback, _1, _2);
+    // server.setCallback(callbackType);
 
-      // TODO: Init subscriber and service
+    // Meaningfull initialization
+    initial_pose_.orientation.w = 1.0;
 
-      // // Initialize subscribers
-      // ros::Subscriber sub_initial_pose = n.subscribe("initialpose", 1, initialPoseCallback);
-      // ros::ServiceServer serv_global_loc = n.advertiseService("global_localization", globalLocalizationCallback);
+    // TODO: Init subscriber and service
 
-      // auto imu_sub = n.subscribe("imu_data", 1, imuCallback);
+    // // Initialize subscribers
+    // ros::Subscriber sub_initial_pose = n.subscribe("initialpose", 1, initialPoseCallback);
+    // ros::ServiceServer serv_global_loc = n.advertiseService("global_localization", globalLocalizationCallback);
 
-      // // Initialize synchronized subscriber for the scan and odom topic
-      // message_filters::Subscriber<sensor_msgs::PointCloud2> scan2_sub(n, "cloud", 1);
+    // auto imu_sub = n.subscribe("imu_data", 1, imuCallback);
 
-      // message_filters::Subscriber<nav_msgs::Odometry> odom_sub(n, "odom", 1);
+    // // Initialize synchronized subscriber for the scan and odom topic
+    // message_filters::Subscriber<sensor_msgs::PointCloud2> scan2_sub(n, "cloud", 1);
 
-      // typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, nav_msgs::Odometry> MySyncPolicy;
+    // message_filters::Subscriber<nav_msgs::Odometry> odom_sub(n, "odom", 1);
 
-      // message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), scan2_sub, odom_sub);
+    // typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, nav_msgs::Odometry> MySyncPolicy;
 
-      // ros::Subscriber sub_os_cloud;
+    // message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), scan2_sub, odom_sub);
 
-      // if (!use_os_)
-      // {
-      //   sync.registerCallback(boost::bind(&scanOdomCallback, _1, _2));
-      // }
-      // else
-      // {
-      //   sub_os_cloud = n.subscribe(cloud_topic, 1, os_callback);
-      // }
+    // ros::Subscriber sub_os_cloud;
 
-      // Initialize publisher
-      particles_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseArray>("particles", 1);;
-      current_pose_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("current_pose", 1);
+    // if (!use_os_)
+    // {
+    //   sync.registerCallback(boost::bind(&scanOdomCallback, _1, _2));
+    // }
+    // else
+    // {
+    //   sub_os_cloud = n.subscribe(cloud_topic, 1, os_callback);
+    // }
 
-      tf_broadcaster_ptr_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    // Initialize publisher
+    particles_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseArray>("particles", 1);;
+    current_pose_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("current_pose", 1);
+
+    tf_broadcaster_ptr_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
   }
 
-  ~TSDFLocalization() 
+  ~TSDFMCLNode() 
   {
     // Save evaluation results during the shutdown of the node
 
@@ -291,13 +297,13 @@ public:
         switch(evaluation_model_)
         {
           case 0:
-            model.reset(new NaivEvaluation());
+            model = std::make_shared<NaivEvaluation>();
             break;
           case 1:
-            model.reset(new OMPLikelihoodEvaluation(100000));
+            model = std::make_shared<OMPLikelihoodEvaluation>(100000);
             break;
           default:
-            model.reset(new OMPLikelihoodEvaluation(100000));
+            model = std::make_shared<OMPLikelihoodEvaluation>(100000);
         }
 
         eval.start("sensor update");
@@ -493,13 +499,13 @@ public:
         switch(evaluation_model_)
         {
           case 0:
-            model.reset(new NaivEvaluation());
+            model = std::make_shared<NaivEvaluation>();
             break;
           case 1:
-            model.reset(new OMPLikelihoodEvaluation(100000));
+            model = std::make_shared<OMPLikelihoodEvaluation>(100000);
             break;
           default:
-            model.reset(new OMPLikelihoodEvaluation(100000));
+            model = std::make_shared<OMPLikelihoodEvaluation>(100000);
         }
 
         eval.start("sensor update");
@@ -618,7 +624,7 @@ public:
    */
   void imuCallback(const sensor_msgs::msg::Imu& imu)
   {
-      imu_acc_.update(imu);
+    imu_acc_.update(imu);
   }
 
 private:
@@ -757,28 +763,34 @@ private:
   // Struct for the definition of a three dimensional point
   struct MyPoint
   {
-      float x;
-      float y;
-      float z;
+    float x;
+    float y;
+    float z;
   };
 
 };
 
-/**
- * @brief Initialize all callbacks, publisher, subscriber, load all static parameters from the launch file and the TSDF map of the environment  
- */
-int main(int argc, char **argv)
-{
-  // ros::init(argc, argv, "mcl");
-  // ros::NodeHandle n;
-  // nh_p_.reset(new ros::NodeHandle("~"));
+} // namespace tsdf_localization
 
-  // ros::MultiThreadedSpinner spinner;
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(tsdf_localization::TSDFMCLNode)
 
-  // spinner.spin();
 
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<TSDFLocalization>());
-  rclcpp::shutdown();
-  return 0;
-}
+// /**
+//  * @brief Initialize all callbacks, publisher, subscriber, load all static parameters from the launch file and the TSDF map of the environment  
+//  */
+// int main(int argc, char **argv)
+// {
+//   // ros::init(argc, argv, "mcl");
+//   // ros::NodeHandle n;
+//   // nh_p_.reset(new ros::NodeHandle("~"));
+
+//   // ros::MultiThreadedSpinner spinner;
+
+//   // spinner.spin();
+
+//   rclcpp::init(argc, argv);
+//   rclcpp::spin(std::make_shared<tsdf_localization::TSDFMCLNode>());
+//   rclcpp::shutdown();
+//   return 0;
+// }

@@ -137,38 +137,146 @@ endfunction()
 
 ### CUDA libraries
 
+
+if(CUDA_FOUND)
+
+    # copied from rmagine:
+    # I am aware find_package(CUDA) is deprecated.
+    # - TODO: support find_package(CUDAToolkit) as well
+    # -- Example: https://github.com/ceres-solver/ceres-solver/blob/master/CMakeLists.txt
+    # - TODO: this becomes quite messy. make a seperate file from this
+    # Or wait until all targeted platforms use `find_package(CUDAToolkit)`, then remove everything
+
+    # default flags are not set when including cuda
+    if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
+        if(NOT CUDA_NVCC_FLAGS_DEBUG)
+            set(CUDA_NVCC_FLAGS_DEBUG "-g" CACHE STRING "" FORCE)
+        endif()
+        if(NOT CUDA_NVCC_FLAGS_MINSIZEREL)
+            set(CUDA_NVCC_FLAGS_MINSIZEREL "-Os -DNDEBUG" CACHE STRING "" FORCE)
+        endif()
+        if(NOT CUDA_NVCC_FLAGS_RELEASE)
+            set(CUDA_NVCC_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
+        endif()
+        if(NOT CUDA_NVCC_FLAGS_RELWITHDEBINFO)
+            set(CUDA_NVCC_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG" CACHE STRING "" FORCE)
+        endif()
+    endif()
+
+    include(CheckLanguage)
+    check_language(CUDA)
+    if(CMAKE_CUDA_COMPILER)
+        message(STATUS "Cuda language available!")
+
+        find_package(CUDAToolkit QUIET)
+        if(CUDAToolkit_FOUND)
+            message(STATUS "Found Cuda Toolkit!")
+            enable_language(CUDA)
+            set(CUDA_FOUND True)
+            set(CUDA_LIBRARIES CUDA::cudart)
+            set(CUDA_cusolver_LIBRARY CUDA::cusolver)
+            set(CUDA_cublas_LIBRARY CUDA::cublas)
+            set(CUDA_DRIVER_LIBRARY CUDA::cuda_driver)
+            set(CUDA_INCLUDE_DIRS "") # is in target instead
+        else()
+            find_package(CUDA)
+            if(CUDA_FOUND)
+                message(STATUS "Found Cuda!")
+                enable_language(CUDA)
+                set(CUDA_DRIVER_LIBRARY cuda)
+            else()
+                message(STATUS "Neither CudaToolkit nor CUDA found!")
+            endif(CUDA_FOUND)
+        endif(CUDAToolkit_FOUND)
+    endif(CMAKE_CUDA_COMPILER)
+endif()
+
+
 if (CUDA_FOUND)
 
-set(CUDA_NVCC_FLAGS "--std=c++17" CACHE STRING "nvcc flags" FORCE)
-set(LIB_TYPE STATIC)
-cuda_add_library(CUDAEvaluator ${LIB_TYPE} src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/runtime_evaluator.cpp)
-target_link_libraries(CUDAEvaluator ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
-ament_target_dependencies(CUDAEvaluator
-  sensor_msgs
-  geometry_msgs
-  tf2_sensor_msgs 
-  tf2_ros
-  tf2_geometry_msgs
-)
+  # set(CUDA_NVCC_FLAGS "--std=c++17" CACHE STRING "nvcc flags" FORCE)
+  # set(LIB_TYPE STATIC)
 
-# cuda_add_executable(cuda_test_eval src/cuda/cuda_test_eval.cu src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/mcl_file.cpp src/util/runtime_evaluator.cpp)
-# target_link_libraries(cuda_test_eval ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
-# ament_target_dependencies(cuda_test_eval
-#   sensor_msgs
-#   geometry_msgs
-#   tf2_sensor_msgs 
-#   tf2_ros
-#   tf2_geometry_msgs
-# )
+  add_library(tsdf_localization_cuda SHARED
+    src/cuda/cuda_evaluator.cu 
+    src/cuda/cuda_sum.cu 
+    src/cuda/cuda_util.cu 
+    src/util/runtime_evaluator.cpp
+  )
+
+  target_link_libraries(tsdf_localization_cuda
+    ${CUDA_LIBRARIES}
+    ${HDF5_LIBRARIES}
+    ${HDF5_HL_LIBRARIES}
+    ${Boost_LIBRARIES}
+  )
+
+  ament_target_dependencies(tsdf_localization_cuda
+    sensor_msgs
+    geometry_msgs
+    tf2_sensor_msgs 
+    tf2_ros
+    tf2_geometry_msgs
+  )
+
+  set_target_properties(tsdf_localization_cuda
+    PROPERTIES
+      SOVERSION ${rmcl_VERSION_MAJOR}
+      VERSION ${rmcl_VERSION}
+      # CXX_STANDARD 17
+  )
+
+  install(TARGETS tsdf_localization_cuda
+    EXPORT tsdf-localization-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+
+  add_definitions(-DTSDF_LOCALIZATION_CUDA)
+
+  # cuda_add_library(CUDAEvaluator ${LIB_TYPE} src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/runtime_evaluator.cpp)
+  # target_link_libraries(CUDAEvaluator ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
+  # ament_target_dependencies(CUDAEvaluator
+  #   sensor_msgs
+  #   geometry_msgs
+  #   tf2_sensor_msgs 
+  #   tf2_ros
+  #   tf2_geometry_msgs
+  # )
+
+  # cuda_add_executable(cuda_test_eval src/cuda/cuda_test_eval.cu src/cuda/cuda_evaluator.cu src/cuda/cuda_sum.cu src/cuda/cuda_util.cu src/util/mcl_file.cpp src/util/runtime_evaluator.cpp)
+  # target_link_libraries(cuda_test_eval ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES} ${Boost_LIBRARIES})
+  # ament_target_dependencies(cuda_test_eval
+  #   sensor_msgs
+  #   geometry_msgs
+  #   tf2_sensor_msgs 
+  #   tf2_ros
+  #   tf2_geometry_msgs
+  # )
 
 endif(CUDA_FOUND)
 
 ### ROS nodes
 
-add_executable(mcl_3d src/mcl_3d.cpp ${TSDF_LOC_SRC})
+####### PCL2 to SCAN CONVERTER
+add_library(tsdf_mcl SHARED 
+  src/tsdf_mcl.cpp
+  ${TSDF_LOC_SRC})
 
-ament_target_dependencies(mcl_3d
+## Specify libraries to link a library or executable target against
+target_link_libraries(tsdf_mcl
+  ${Boost_LIBRARIES}
+  ${OpenMP_LIBS}
+  ${HDF5_LIBRARIES}
+  ${HDF5_HL_LIBRARIES}
+  Eigen3::Eigen
+)
+
+target_compile_options(tsdf_mcl PRIVATE ${OpenMP_FLAGS})
+
+ament_target_dependencies(tsdf_mcl
     rclcpp
+    rclcpp_components
     sensor_msgs
     geometry_msgs
     visualization_msgs
@@ -179,25 +287,22 @@ ament_target_dependencies(mcl_3d
     std_srvs
 )
 
+rclcpp_components_register_node(tsdf_mcl 
+    PLUGIN "TSDFMCLNode" 
+    EXECUTABLE tsdf_mcl_node)
 
+# Enable cuda by linking
 if (CUDA_FOUND)
-
-add_dependencies(mcl_3d CUDAEvaluator)
-target_link_libraries(mcl_3d ${Boost_LIBRARIES} CUDAEvaluator)
-
-else (CUDA_FOUND)
-
-target_link_libraries(mcl_3d ${Boost_LIBRARIES})
-
+  add_dependencies(tsdf_mcl CUDAEvaluator)
+  target_link_libraries(tsdf_mcl CUDAEvaluator)
 endif (CUDA_FOUND)
 
-target_compile_options(mcl_3d PRIVATE ${OpenMP_FLAGS})
 
-target_link_libraries(mcl_3d 
-    ${OpenMP_LIBS}
-    ${HDF5_LIBRARIES}
-    ${HDF5_HL_LIBRARIES}
-    Eigen3::Eigen
+install(TARGETS 
+    tsdf_mcl
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
