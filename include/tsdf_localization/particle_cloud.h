@@ -32,6 +32,8 @@
 
 #include <tsdf_localization/cuda/cuda_evaluator.h>
 
+#include <rclcpp/clock.hpp>
+
 namespace tsdf_localization
 {
 
@@ -84,17 +86,17 @@ public:
   /**
    * @brief Initialize the particle cloud local with a normal distribution
    */
-  ParticleCloud(const geometry_msgs::msg::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw);
+  // ParticleCloud(const geometry_msgs::msg::Pose& center_pose, unsigned int number_particles, FLOAT_T init_sigma_x, FLOAT_T init_sigma_y, FLOAT_T init_sigma_z, FLOAT_T init_sigma_roll, FLOAT_T init_sigma_pitch, FLOAT_T init_sigma_yaw);
 
-  /**
-   * @brief Initialize the particle cloud local with a uniform distribution
-   */
-  ParticleCloud(unsigned int number_particles, const geometry_msgs::msg::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
+  // /**
+  //  * @brief Initialize the particle cloud local with a uniform distribution
+  //  */
+  // ParticleCloud(unsigned int number_particles, const geometry_msgs::msg::Pose& center_pose, FLOAT_T dx, FLOAT_T dy, FLOAT_T dz, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
 
-  /**
-   * @brief Initialize the particle cloud global in the given map
-   */
-  ParticleCloud(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::msg::Pose& center_pose, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
+  // /**
+  //  * @brief Initialize the particle cloud global in the given map
+  //  */
+  // ParticleCloud(unsigned int number_particles, const std::vector<CudaPoint>& free_map, const geometry_msgs::msg::Pose& center_pose, FLOAT_T droll = M_PI, FLOAT_T dpitch = M_PI, FLOAT_T dyaw = M_PI);
 
   /**
    * @brief Initializes the particles by sampling a normal distribution with a given pose as average 
@@ -178,6 +180,11 @@ public:
     a_12_ = a_12;
   }
 
+  void setClock(rclcpp::Clock::SharedPtr clock)
+  {
+    clock_ = clock;
+  }
+
   /**
    * @brief Access to single particles
    * 
@@ -256,6 +263,8 @@ public:
   // {
   //   ignore_motion_ = state;
   // }
+
+  rclcpp::Clock::SharedPtr clock_;
 };
 
 } // namespace tsdf_localization

@@ -77,6 +77,11 @@ public:
   {
     std::cout << "Create TSDF MCL Node..." << std::endl;
 
+    // share clocks
+    particle_cloud_.setClock(this->get_clock());
+    imu_acc_.setClock(this->get_clock());
+
+
     float sigma = SIGMA;
     float a_hit = A_HIT;
     float a_rand = A_RAND;
@@ -154,7 +159,7 @@ public:
       use_imu_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
       use_imu_pdesc.description = "Use the IMU information in the motion update. If not the odometry is used.";
       use_imu_ = this->declare_parameter<bool>(use_imu_pdesc.name, false, use_imu_pdesc);
-    
+
       rcl_interfaces::msg::ParameterDescriptor use_os_pdesc; 
       use_os_pdesc.name = "use_os";
       use_os_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
@@ -260,17 +265,12 @@ public:
     
     if(!use_os_)
     {
-
-      // Initialize synchronized subscriber for the scan and odom topic
-      message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub;
-      message_filters::Subscriber<sensor_msgs::msg::PointCloud2> pcd_sub;
-      
-      odom_sub.subscribe(this, "odom");
-      pcd_sub.subscribe(this, "cloud");
+      odom_sub_.subscribe(this, "odom");
+      pcd_sub_.subscribe(this, "cloud");
 
       uint32_t queue_size = 10;
       using MySyncPolicy = message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2>;
-      sub_odom_pcd_ = std::make_shared<message_filters::Synchronizer<MySyncPolicy>>(MySyncPolicy(queue_size), odom_sub, pcd_sub);
+      sub_odom_pcd_ = std::make_shared<message_filters::Synchronizer<MySyncPolicy>>(MySyncPolicy(queue_size), odom_sub_, pcd_sub_);
 
       sub_odom_pcd_->setAgePenalty(0.50);
       sub_odom_pcd_->registerCallback(std::bind(&TSDFMCLNode::scanOdomCallback, this, _1, _2));
@@ -347,6 +347,7 @@ public:
     const nav_msgs::msg::Odometry::ConstSharedPtr& odom,
     const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud)
   { 
+    RCLCPP_INFO(this->get_logger(), "scanOdomCallback!");
     static tf2::BufferCore tf_buffer;
     static tf2_ros::TransformListener tf_listener(tf_buffer);
 
@@ -357,44 +358,50 @@ public:
     if(!particle_cloud_.isInitialized() || pose_initialized_ || global_initialized_)
     {
       eval.start("init");
+      particle_cloud_.setClock(this->get_clock());
       if(!particle_cloud_.isInitialized() || global_initialized_)
       {
-        std::cout << "Execute global particle initialization..." << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Execute global particle initialization...");
         particle_cloud_.initialize(number_particles_, free_map_, initial_pose_);
         global_initialized_ = false;
       } else if(pose_initialized_) {
-        std::cout << "Execute local particle initialization..." << std::endl;
+        RCLCPP_INFO(this->get_logger(), "Execute local particle initialization...");
         particle_cloud_.initialize(initial_pose_, number_particles_, init_sigma_x_, init_sigma_y_, init_sigma_z_, init_sigma_roll_, init_sigma_pitch_, init_sigma_yaw_);
         pose_initialized_ = false;
       }
       eval.stop("init");
     }
-    // Resample particles
-    else
-    {
-      
+    else 
+    { // Resample particles
+      RCLCPP_INFO(this->get_logger(), "ELSE!");
       eval.start("motion update");
       
-      if (ignore_motion_)
+      if(ignore_motion_)
       {
+        RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: ignore");
         particle_cloud_.motionUpdate(lin_scale_, ang_scale_);
       }
       else
       {
-        if (use_imu_)
+        if(use_imu_)
         {
+          RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: imu");
           ImuAccumulator::Data imu_data;
           imu_acc_.getAndResetData(imu_data);
           particle_cloud_.motionUpdate(lin_scale_, imu_data);
         }
         else
         {
+          RCLCPP_INFO(this->get_logger(), "MOTION UPDATE: odom msg");
+          
           particle_cloud_.motionUpdate(*odom);
         }
       }
       
       eval.stop("motion update");
 
+
+      RCLCPP_INFO_STREAM(this->get_logger(), "SENSOR UPDATE ? " << particle_cloud_.refDist() << " >= " << delta_update_dist_ << " || " << particle_cloud_.refAngle() << " >= " << delta_update_angle_);
       if (ignore_motion_ || use_imu_ || particle_cloud_.refDist() >= delta_update_dist_ || particle_cloud_.refAngle() >= delta_update_angle_)
       {
         particle_cloud_.resetRef();
@@ -415,6 +422,7 @@ public:
             model = std::make_shared<OMPLikelihoodEvaluation>(100000);
         }
 
+        RCLCPP_INFO(this->get_logger(), "SENSOR UPDATE");
         eval.start("sensor update");
 
         try
@@ -456,10 +464,12 @@ public:
         }
         catch (tf2::TransformException& e)
         {
-          std::cerr << "Could not evaluate!" << std::endl;
+          RCLCPP_ERROR(this->get_logger(), "Could not evaluate!");
         }
 
         eval.stop("sensor update");
+
+        RCLCPP_INFO(this->get_logger(), "SENSOR UPDATE END");
 
         ss_stamp << cloud->header.stamp.sec << "\n";
 
@@ -874,8 +884,13 @@ private:
     sub_os_pcd_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr 
     sub_imu_;
+  // Initialize synchronized subscriber for the scan and odom topic
+  message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
+  message_filters::Subscriber<sensor_msgs::msg::PointCloud2> pcd_sub_;
   std::shared_ptr<message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2>>> 
     sub_odom_pcd_;
+
+
 
   // Publisher for the current particles
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr 

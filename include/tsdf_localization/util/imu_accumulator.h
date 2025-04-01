@@ -32,9 +32,16 @@ public:
         FLOAT_T delta_yaw = 0.0;
     };
 
-    ImuAccumulator() : first_(true), data_{0.0, 0.0, 0.0, 0.0, 0.0}
+    ImuAccumulator() 
+    : first_(true)
+    , data_{0.0, 0.0, 0.0, 0.0, 0.0}
     {
 
+    }
+
+    void setClock(rclcpp::Clock::SharedPtr clock)
+    {
+      clock_ = clock;
     }
 
     void update(const sensor_msgs::msg::Imu& imu)
@@ -43,8 +50,7 @@ public:
 
         if (first_)
         {
-            // TODO: get current time
-            //last_ = ros::Time::now();
+            last_ = clock_->now();
             first_ = false;
 
             mutex_.unlock();
@@ -52,8 +58,7 @@ public:
             return;
         }
 
-        // TODO: Get current time
-        rclcpp::Time current;
+        rclcpp::Time current = clock_->now();
 
         auto dt = (current - last_).seconds();
 
@@ -130,6 +135,8 @@ private:
     Data data_;
 
     std::mutex mutex_;
+
+    rclcpp::Clock::SharedPtr clock_;
 };
 
 } // namespace tsdf_localization
