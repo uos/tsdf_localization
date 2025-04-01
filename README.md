@@ -31,11 +31,32 @@ A quick startup including how to use tsdf_localization within your package is sh
 ## Citation
 
 Please reference the following papers when using `tsdf_localization` in your scientific work.
+ 
+```bib
+@inproceedings{eisoldt2023tsdfmcl,
+  author={Eisoldt, Marc and Mock, Alexander and Porrmann, Mario and Wiemann, Thomas},
+  booktitle={2023 Seventh IEEE International Conference on Robotic Computing (IRC)}, 
+  title={{Towards 6D MCL for LiDARs in 3D TSDF Maps on Embedded Systems with GPUs}}, 
+  year={2023},
+  pages={158-165},
+  doi={10.1109/IRC59093.2023.00035}
+}
+```
 
-- Title: "Towards 6D MCL for LiDARs in 3D TSDF Maps on Embedded Systems with GPUs"
-- Preprint: https://arxiv.org/abs/2310.04172
+The paper is available on [IEEE Xplore](https://ieeexplore.ieee.org/document/10473560) and as preprint on [arXiv](https://arxiv.org/abs/2310.04172).
 
-The paper is accepted to 2023 IEEE International Conference on Robotic Computing (IRC). The citation will be updated soon.
+
+```bib
+@article{eisoldt2025tsdfmcl,
+  author={Eisoldt, Marc and Mock, Alexander and Wiemann, Thomas and Porrmann, Mario},
+  title={Efficient Global 6D Localization in 3D TSDF Maps Using Point-wise and Scan-wise Reduction Methods on Embedded GPUs},
+  journal={International Journal of Semantic Computing},
+  doi={10.1142/S1793351X25410053}
+}
+```
+
+The paper is available on [World Scientific](https://www.worldscientific.com/doi/abs/10.1142/S1793351X25410053).
+
 
 ## Nodes
 
