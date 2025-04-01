@@ -259,12 +259,12 @@ endif(CUDA_FOUND)
 ### ROS nodes
 
 ####### PCL2 to SCAN CONVERTER
-add_library(tsdf_mcl SHARED 
+add_library(tsdf_mcl_component SHARED 
   src/tsdf_mcl.cpp
   ${TSDF_LOC_SRC})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(tsdf_mcl
+target_link_libraries(tsdf_mcl_component
   ${Boost_LIBRARIES}
   ${OpenMP_LIBS}
   ${HDF5_LIBRARIES}
@@ -272,9 +272,9 @@ target_link_libraries(tsdf_mcl
   Eigen3::Eigen
 )
 
-target_compile_options(tsdf_mcl PRIVATE ${OpenMP_FLAGS})
+target_compile_options(tsdf_mcl_component PRIVATE ${OpenMP_FLAGS})
 
-ament_target_dependencies(tsdf_mcl
+ament_target_dependencies(tsdf_mcl_component
     rclcpp
     rclcpp_components
     sensor_msgs
@@ -287,23 +287,26 @@ ament_target_dependencies(tsdf_mcl
     std_srvs
 )
 
-rclcpp_components_register_node(tsdf_mcl 
-    PLUGIN "TSDFMCLNode" 
-    EXECUTABLE tsdf_mcl_node)
-
 # Enable cuda by linking
 if (CUDA_FOUND)
-  add_dependencies(tsdf_mcl CUDAEvaluator)
-  target_link_libraries(tsdf_mcl CUDAEvaluator)
+  add_dependencies(tsdf_mcl_component 
+    tsdf_localization_cuda
+  )
+  target_link_libraries(tsdf_mcl_component 
+    tsdf_localization_cuda
+  )
 endif (CUDA_FOUND)
 
-
 install(TARGETS 
-    tsdf_mcl
+    tsdf_mcl_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
+rclcpp_components_register_node(tsdf_mcl_component 
+    PLUGIN "tsdf_localization::TSDFMCLNode" 
+    EXECUTABLE tsdf_mcl)
 
 # add_executable(num_particles_eval src/num_particles_eval.cpp src/util/mcl_file.cpp ${TSDF_LOC_SRC})
 

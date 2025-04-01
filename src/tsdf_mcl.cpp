@@ -63,6 +63,9 @@
 
 using namespace std::chrono_literals;
 
+using std::placeholders::_1;
+using std::placeholders::_2;
+
 namespace tsdf_localization
 {
 
@@ -81,40 +84,115 @@ public:
     float max_range = MAX_RANGE;
 
     // TODO: Init params
-
     // std::string cloud_topic;
     // std::string imu_topic;
 
-    // nh_p_->getParam("map_file", map_file_name_);
-    // nh_p_->getParam("per_point", per_point_);
-    // nh_p_->getParam("init_global", init_global_);
-    // nh_p_->getParam("a_hit", a_hit);
-    // nh_p_->getParam("a_rand", a_rand);
-    // nh_p_->getParam("a_max", a_max);
-    // nh_p_->getParam("max_range", max_range);
-    // nh_p_->getParam("use_imu", use_imu_);
-    // nh_p_->getParam("use_os", use_os_);
-    // nh_p_->getParam("ignore_motion", ignore_motion_);
-    // nh_p_->getParam("use_best_pose", use_best_pose_);
-    // nh_p_->getParam("reduction_cell_size", reduction_cell_size_);
-    // nh_p_->getParam("print_runtime_stats", print_runtime_stats_);
+    // Definining parameters and loading initial values
+    {
+      rcl_interfaces::msg::ParameterDescriptor map_file_pdesc; 
+      map_file_pdesc.name = "map_file";
+      map_file_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+      map_file_pdesc.description = "The path to a tsdf map (h5 format)";
+      map_file_name_ = this->declare_parameter<std::string>(map_file_pdesc.name, "", map_file_pdesc);
 
+      rcl_interfaces::msg::ParameterDescriptor map_frame_pdesc; 
+      map_frame_pdesc.name = "map_frame";
+      map_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+      map_frame_pdesc.description = "Name of the map frame";
+      map_frame_ = this->declare_parameter<std::string>(map_frame_pdesc.name, "map", map_frame_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor odom_frame_pdesc; 
+      odom_frame_pdesc.name = "odom_frame";
+      odom_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+      odom_frame_pdesc.description = "Name of the odometry frame";
+      odom_frame_ = this->declare_parameter<std::string>(odom_frame_pdesc.name, "odom", odom_frame_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor robot_frame_pdesc; 
+      robot_frame_pdesc.name = "robot_frame";
+      robot_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+      robot_frame_pdesc.description = "Name of the robot frame";
+      robot_frame_ = this->declare_parameter<std::string>(robot_frame_pdesc.name, "base_link", robot_frame_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor per_point_pdesc; 
+      per_point_pdesc.name = "per_point";
+      per_point_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      per_point_pdesc.description = "Per point parallelization? Per particle parallelization otherwise.";
+      per_point_ = this->declare_parameter<bool>(per_point_pdesc.name, false, per_point_pdesc);
     
-    // geometry_msgs::Transform calib_pose;
-    // calib_pose.rotation.w = 1.0;
-
-    // nh_p_->getParam("q_x", calib_pose.rotation.x);
-    // nh_p_->getParam("q_y", calib_pose.rotation.y);
-    // nh_p_->getParam("q_z", calib_pose.rotation.z);
-    // nh_p_->getParam("q_w", calib_pose.rotation.w);
-
-    // nh_p_->getParam("p_x", calib_pose.translation.x);
-    // nh_p_->getParam("p_y", calib_pose.translation.y);
-    // nh_p_->getParam("p_z", calib_pose.translation.z);
+      rcl_interfaces::msg::ParameterDescriptor init_global_pdesc; 
+      init_global_pdesc.name = "init_global";
+      init_global_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      init_global_pdesc.description = "Initialize for global localization?";
+      init_global_ = this->declare_parameter<bool>(init_global_pdesc.name, false, init_global_pdesc);
     
-    // nh_p_->getParam("robot_frame", robot_frame_);
-    // nh_p_->getParam("odom_frame", odom_frame_);
-    // nh_p_->getParam("map_frame", map_frame_);
+      rcl_interfaces::msg::ParameterDescriptor a_hit_pdesc; 
+      a_hit_pdesc.name = "a_hit";
+      a_hit_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+      a_hit_pdesc.description = "a hit";
+      a_hit = this->declare_parameter<double>(a_hit_pdesc.name, (double)A_HIT, a_hit_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor a_rand_pdesc; 
+      a_rand_pdesc.name = "a_rand";
+      a_rand_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+      a_rand_pdesc.description = "a rand";
+      a_rand = this->declare_parameter<double>(a_rand_pdesc.name, (double)A_RAND, a_rand_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor a_max_pdesc; 
+      a_max_pdesc.name = "a_max";
+      a_max_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+      a_max_pdesc.description = "a max";
+      a_max = this->declare_parameter<double>(a_max_pdesc.name, (double)A_MAX, a_max_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor max_range_pdesc; 
+      max_range_pdesc.name = "max_range";
+      max_range_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+      max_range_pdesc.description = "max range";
+      max_range = this->declare_parameter<double>(max_range_pdesc.name, (double)MAX_RANGE, max_range_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor use_imu_pdesc; 
+      use_imu_pdesc.name = "use_imu";
+      use_imu_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      use_imu_pdesc.description = "Use the IMU information in the motion update. If not the odometry is used.";
+      use_imu_ = this->declare_parameter<bool>(use_imu_pdesc.name, false, use_imu_pdesc);
+    
+      rcl_interfaces::msg::ParameterDescriptor use_os_pdesc; 
+      use_os_pdesc.name = "use_os";
+      use_os_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      use_os_pdesc.description = "Use an ouster as input of the sensor update. If not a velodyne is used.";
+      use_os_ = this->declare_parameter<bool>(use_os_pdesc.name, false, use_os_pdesc);
+      
+      rcl_interfaces::msg::ParameterDescriptor ignore_motion_pdesc; 
+      ignore_motion_pdesc.name = "ignore_motion";
+      ignore_motion_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      ignore_motion_pdesc.description = "Ignores any sensor information in the motion update and only applies noise to every particle.";
+      ignore_motion_ = this->declare_parameter<bool>(ignore_motion_pdesc.name, false, ignore_motion_pdesc);
+      
+      rcl_interfaces::msg::ParameterDescriptor use_best_pose_pdesc; 
+      use_best_pose_pdesc.name = "use_best_pose";
+      use_best_pose_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      use_best_pose_pdesc.description = "Uses the particle with the best weight as current pose estimation. Else, the weighted average of all particles is used.";
+      use_best_pose_ = this->declare_parameter<bool>(use_best_pose_pdesc.name, false, use_best_pose_pdesc);
+      
+      rcl_interfaces::msg::ParameterDescriptor reduction_cell_size_pdesc; 
+      reduction_cell_size_pdesc.name = "reduction_cell_size";
+      reduction_cell_size_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+      reduction_cell_size_pdesc.description = "Reduction cell size";
+      reduction_cell_size_ = this->declare_parameter<double>(max_range_pdesc.name, 0.064, max_range_pdesc);
+
+      rcl_interfaces::msg::ParameterDescriptor print_runtime_stats_pdesc; 
+      print_runtime_stats_pdesc.name = "print_runtime_stats";
+      print_runtime_stats_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+      print_runtime_stats_pdesc.description = "Ignores any sensor information in the motion update and only applies noise to every particle.";
+      print_runtime_stats_ = this->declare_parameter<bool>(print_runtime_stats_pdesc.name, true, print_runtime_stats_pdesc);      
+    }
+
+
+    if(map_file_name_ == "")
+    {
+      RCLCPP_ERROR_STREAM(this->get_logger(), "ERROR: Please provide a map!");
+      throw std::runtime_error("ERROR: Please provide a map!");
+    }
+    RCLCPP_INFO_STREAM(this->get_logger(), "Loading map from '" << map_file_name_ << "'");
 
     auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(map_file_name_, free_map_, sigma);
     
@@ -137,7 +215,7 @@ public:
       std::cout << "Not using any sensor for motion update..." << std::endl;
     }
 
-    resampler_ptr_.reset(new ResidualSystematicResampler());
+    resampler_ptr_ = std::make_unique<ResidualSystematicResampler>();
     
     ss_stamp << "stamp:\n";
 
@@ -153,33 +231,61 @@ public:
     // TODO: Init subscriber and service
 
     // // Initialize subscribers
-    // ros::Subscriber sub_initial_pose = n.subscribe("initialpose", 1, initialPoseCallback);
-    // ros::ServiceServer serv_global_loc = n.advertiseService("global_localization", globalLocalizationCallback);
 
-    // auto imu_sub = n.subscribe("imu_data", 1, imuCallback);
+    // rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr 
+    //   sub_initial_pose_;
+    // rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr 
+    //   sub_pcd_;
+    // rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr 
+    //   sub_imu_;
+    // rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr 
+    //   sub_odom_;
 
-    // // Initialize synchronized subscriber for the scan and odom topic
-    // message_filters::Subscriber<sensor_msgs::PointCloud2> scan2_sub(n, "cloud", 1);
+    sub_initial_pose_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+      "initialpose", 10, 
+      [=](const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr& msg) -> void
+      { 
+        initialPoseCallback(msg);
+      });
+    // TODO: // ros::ServiceServer serv_global_loc = n.advertiseService("global_localization", globalLocalizationCallback);
+    srv_global_loc_ = this->create_service<std_srvs::srv::Empty>(
+      "global_localization", std::bind(&TSDFMCLNode::globalLocalizationCallback, this, _1, _2));
 
-    // message_filters::Subscriber<nav_msgs::Odometry> odom_sub(n, "odom", 1);
+    sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "imu_data", 10, 
+      [=](const sensor_msgs::msg::Imu::ConstSharedPtr& msg) -> void
+      { 
+        imuCallback(msg);
+      });
+    
+    if(!use_os_)
+    {
 
-    // typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, nav_msgs::Odometry> MySyncPolicy;
+      // Initialize synchronized subscriber for the scan and odom topic
+      message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub;
+      message_filters::Subscriber<sensor_msgs::msg::PointCloud2> pcd_sub;
+      
+      odom_sub.subscribe(this, "odom");
+      pcd_sub.subscribe(this, "cloud");
 
-    // message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), scan2_sub, odom_sub);
+      uint32_t queue_size = 10;
+      using MySyncPolicy = message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2>;
+      sub_odom_pcd_ = std::make_shared<message_filters::Synchronizer<MySyncPolicy>>(MySyncPolicy(queue_size), odom_sub, pcd_sub);
 
-    // ros::Subscriber sub_os_cloud;
+      sub_odom_pcd_->setAgePenalty(0.50);
+      sub_odom_pcd_->registerCallback(std::bind(&TSDFMCLNode::scanOdomCallback, this, _1, _2));
 
-    // if (!use_os_)
-    // {
-    //   sync.registerCallback(boost::bind(&scanOdomCallback, _1, _2));
-    // }
-    // else
-    // {
-    //   sub_os_cloud = n.subscribe(cloud_topic, 1, os_callback);
-    // }
+    } else {
+      sub_os_pcd_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+        "cloud", 10, 
+        [=](const sensor_msgs::msg::PointCloud2::ConstSharedPtr& msg) -> void
+        { 
+          osCallback(msg);
+        });
+    }
 
     // Initialize publisher
-    particles_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseArray>("particles", 1);;
+    particles_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseArray>("particles", 1);
     current_pose_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("current_pose", 1);
 
     tf_broadcaster_ptr_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
@@ -207,36 +313,39 @@ public:
   /**
  * @brief Callback to get the initial pose etsimation for the algorithm  
  */
-  void initialPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped& pose_with_covariance)
+  void initialPoseCallback(
+    const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr& pose_with_covariance)
   {
-    initial_pose_ = pose_with_covariance.pose.pose;
+    initial_pose_ = pose_with_covariance->pose.pose;
 
     initial_pose_.position.z = -0.1;
     pose_initialized_ = true;
+
+    // TODOs:
+    // - remove the constant -0.1
+    // - use the covariance
 
     std::cout << "Initial pose received!" << std::endl;;
   }
 
   // TODO: Implement service
-  // bool globalLocalizationCallback(
-  //   std_srvs::Empty::Request& req,
-  //   std_srvs::Empty::Response& res)
-  // {
-  //   global_initialized_ = true;
-
-  //   std::cout << "Global localization triggered!" << std::endl;
-  //   return true;
-  // }
+  void globalLocalizationCallback(
+    const std::shared_ptr<std_srvs::srv::Empty::Request> req,
+    const std::shared_ptr<std_srvs::srv::Empty::Response> res)
+  {
+    global_initialized_ = true;
+    std::cout << "Global localization triggered!" << std::endl;
+  }
 
   /**
    * @brief Main callcack for the MCL algorithm to perform the initialization of the particle cloud, the motion update, the sensor update and the resampling based on the received data
    * 
-   * @param cloud Scan cloud to perform a sensor update based on the given TSDF map
    * @param odom Odometry estimation to perform a motion update
+   * @param cloud Scan cloud to perform a sensor update based on the given TSDF map
    */
   void scanOdomCallback(
-    const sensor_msgs::msg::PointCloud2& cloud, 
-    const nav_msgs::msg::Odometry& odom)
+    const nav_msgs::msg::Odometry::ConstSharedPtr& odom,
+    const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud)
   { 
     static tf2::BufferCore tf_buffer;
     static tf2_ros::TransformListener tf_listener(tf_buffer);
@@ -280,7 +389,7 @@ public:
         }
         else
         {
-          particle_cloud_.motionUpdate(odom);
+          particle_cloud_.motionUpdate(*odom);
         }
       }
       
@@ -311,7 +420,7 @@ public:
         try
         {
           current_pose = tsdf_evaluator_ptr_->evaluateParticles(
-              particle_cloud_, cloud, robot_frame_, cloud.header.frame_id, use_cuda_);
+              particle_cloud_, *cloud, robot_frame_, cloud->header.frame_id, use_cuda_);
           current_pose.pose.position.z -= init_diff_z;
 
           FLOAT_T max_value = 0.0;
@@ -352,7 +461,7 @@ public:
 
         eval.stop("sensor update");
 
-        ss_stamp << cloud.header.stamp.sec << "\n";
+        ss_stamp << cloud->header.stamp.sec << "\n";
 
         evaluated_ = true;
 
@@ -422,7 +531,7 @@ public:
       tf2::Transform map_to_odom = map_to_base * tf_odom_to_base.inverse();
 
       geometry_msgs::msg::TransformStamped stamped_transform;
-      stamped_transform.header.stamp = cloud.header.stamp;
+      stamped_transform.header.stamp = cloud->header.stamp;
       stamped_transform.header.frame_id = map_frame_;
       stamped_transform.child_frame_id = odom_frame_;
       tf2::convert(map_to_odom, stamped_transform.transform);
@@ -440,7 +549,7 @@ public:
     }
   }
 
-  void os_callback(const sensor_msgs::msg::PointCloud2& cloud)
+  void osCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud)
   {
     static tf2::BufferCore tf_buffer;
     static tf2_ros::TransformListener tf_listener(tf_buffer);
@@ -512,7 +621,11 @@ public:
 
         try
         {
-          current_pose = tsdf_evaluator_ptr_->evaluateParticles(particle_cloud_, cloud, robot_frame_, cloud.header.frame_id, use_cuda_, true);
+          current_pose = tsdf_evaluator_ptr_->evaluateParticles(
+            particle_cloud_, *cloud, 
+            robot_frame_, cloud->header.frame_id, 
+            use_cuda_, true);
+          
           FLOAT_T max_value = 0.0;
           FLOAT_T max_index = -1;
 
@@ -550,7 +663,7 @@ public:
 
         eval.stop("sensor update");
 
-        ss_stamp << cloud.header.stamp.sec << "\n";
+        ss_stamp << cloud->header.stamp.sec << "\n";
 
         evaluated_ = true;
 
@@ -594,15 +707,15 @@ public:
       pose_stamped.pose = current_pose;
       current_pose_pub_ptr_->publish(pose_stamped);
 
-      /*** Provide a transform from the odom frame to the map fram based on the best estimated pose ***/ 
+      /// Provide a transform from the odom frame to the map frame based on the best estimated pose
 
       tf2::Transform map_to_base;
       tf2::convert(current_pose.pose, map_to_base);
       
       geometry_msgs::msg::TransformStamped stamped_transform;
-      stamped_transform.header.stamp = cloud.header.stamp;
+      stamped_transform.header.stamp = cloud->header.stamp;
       
-      stamped_transform.header.frame_id = cloud.header.frame_id;
+      stamped_transform.header.frame_id = cloud->header.frame_id;
       stamped_transform.child_frame_id = map_frame_;
       tf2::convert(map_to_base.inverse(), stamped_transform.transform);
 
@@ -622,17 +735,14 @@ public:
   /**
    * @brief Callback to receive imu dat for the motion update 
    */
-  void imuCallback(const sensor_msgs::msg::Imu& imu)
+  void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& imu)
   {
-    imu_acc_.update(imu);
+    imu_acc_.update(*imu);
   }
 
 private:
   // IMU accumulator to merge IMU measurents until a new motion update should be performed
   ImuAccumulator imu_acc_;
-
-  // Reference to the node
-  //std::shared_ptr<ros::NodeHandle> nh_p_;
 
   // Initial estimate, where the robot might be located
   geometry_msgs::msg::Pose initial_pose_;
@@ -669,12 +779,6 @@ private:
 
   // Pointer to the resampler to generate a new particle set
   std::unique_ptr<Resampler> resampler_ptr_;
-
-  // Publisher for the current particles
-  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr particles_pub_ptr_;
-
-  // Publisher of the current estimated pose
-  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr current_pose_pub_ptr_; 
 
   // Standard deviation for the mcl startup with an initial pose estimation
   FLOAT_T init_sigma_x_;
@@ -728,7 +832,7 @@ private:
   FLOAT_T ang_scale_ = 1.0;
 
   // Name of the file used to load the map of the environment
-  std::string map_file_name_ = "/home/marc/ros_ws/tsdf_maps/sim_map.h5";
+  std::string map_file_name_;//  = "/home/marc/ros_ws/tsdf_maps/sim_map.h5";
 
   std::vector<CudaPoint> free_map_;
 
@@ -758,15 +862,31 @@ private:
   std::vector<double> avg_diff_pitch;
   std::vector<double> avg_diff_yaw;
 
+  
+  // Subscriber + Publisher + Services
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_ptr_;
 
-  // Struct for the definition of a three dimensional point
-  struct MyPoint
-  {
-    float x;
-    float y;
-    float z;
-  };
+  rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr 
+    sub_initial_pose_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_global_loc_;
+
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr 
+    sub_os_pcd_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr 
+    sub_imu_;
+  std::shared_ptr<message_filters::Synchronizer<message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2>>> 
+    sub_odom_pcd_;
+
+  // Publisher for the current particles
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr 
+    particles_pub_ptr_;
+
+  // Publisher of the current estimated pose
+  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr 
+    current_pose_pub_ptr_; 
+
+
+
 
 };
 
@@ -774,23 +894,3 @@ private:
 
 #include "rclcpp_components/register_node_macro.hpp"
 RCLCPP_COMPONENTS_REGISTER_NODE(tsdf_localization::TSDFMCLNode)
-
-
-// /**
-//  * @brief Initialize all callbacks, publisher, subscriber, load all static parameters from the launch file and the TSDF map of the environment  
-//  */
-// int main(int argc, char **argv)
-// {
-//   // ros::init(argc, argv, "mcl");
-//   // ros::NodeHandle n;
-//   // nh_p_.reset(new ros::NodeHandle("~"));
-
-//   // ros::MultiThreadedSpinner spinner;
-
-//   // spinner.spin();
-
-//   rclcpp::init(argc, argv);
-//   rclcpp::spin(std::make_shared<tsdf_localization::TSDFMCLNode>());
-//   rclcpp::shutdown();
-//   return 0;
-// }
