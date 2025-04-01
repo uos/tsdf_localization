@@ -81,116 +81,12 @@ public:
     particle_cloud_.setClock(this->get_clock());
     imu_acc_.setClock(this->get_clock());
 
-
-    float sigma = SIGMA;
-    float a_hit = A_HIT;
-    float a_rand = A_RAND;
-    float a_max = A_MAX;
-    float max_range = MAX_RANGE;
-
     // TODO: Init params
     // std::string cloud_topic;
     // std::string imu_topic;
 
     // Definining parameters and loading initial values
-    {
-      rcl_interfaces::msg::ParameterDescriptor map_file_pdesc; 
-      map_file_pdesc.name = "map_file";
-      map_file_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
-      map_file_pdesc.description = "The path to a tsdf map (h5 format)";
-      map_file_name_ = this->declare_parameter<std::string>(map_file_pdesc.name, "", map_file_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor map_frame_pdesc; 
-      map_frame_pdesc.name = "map_frame";
-      map_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
-      map_frame_pdesc.description = "Name of the map frame";
-      map_frame_ = this->declare_parameter<std::string>(map_frame_pdesc.name, "map", map_frame_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor odom_frame_pdesc; 
-      odom_frame_pdesc.name = "odom_frame";
-      odom_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
-      odom_frame_pdesc.description = "Name of the odometry frame";
-      odom_frame_ = this->declare_parameter<std::string>(odom_frame_pdesc.name, "odom", odom_frame_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor robot_frame_pdesc; 
-      robot_frame_pdesc.name = "robot_frame";
-      robot_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
-      robot_frame_pdesc.description = "Name of the robot frame";
-      robot_frame_ = this->declare_parameter<std::string>(robot_frame_pdesc.name, "base_link", robot_frame_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor per_point_pdesc; 
-      per_point_pdesc.name = "per_point";
-      per_point_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      per_point_pdesc.description = "Per point parallelization? Per particle parallelization otherwise.";
-      per_point_ = this->declare_parameter<bool>(per_point_pdesc.name, false, per_point_pdesc);
-    
-      rcl_interfaces::msg::ParameterDescriptor init_global_pdesc; 
-      init_global_pdesc.name = "init_global";
-      init_global_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      init_global_pdesc.description = "Initialize for global localization?";
-      init_global_ = this->declare_parameter<bool>(init_global_pdesc.name, false, init_global_pdesc);
-    
-      rcl_interfaces::msg::ParameterDescriptor a_hit_pdesc; 
-      a_hit_pdesc.name = "a_hit";
-      a_hit_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-      a_hit_pdesc.description = "a hit";
-      a_hit = this->declare_parameter<double>(a_hit_pdesc.name, (double)A_HIT, a_hit_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor a_rand_pdesc; 
-      a_rand_pdesc.name = "a_rand";
-      a_rand_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-      a_rand_pdesc.description = "a rand";
-      a_rand = this->declare_parameter<double>(a_rand_pdesc.name, (double)A_RAND, a_rand_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor a_max_pdesc; 
-      a_max_pdesc.name = "a_max";
-      a_max_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-      a_max_pdesc.description = "a max";
-      a_max = this->declare_parameter<double>(a_max_pdesc.name, (double)A_MAX, a_max_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor max_range_pdesc; 
-      max_range_pdesc.name = "max_range";
-      max_range_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-      max_range_pdesc.description = "max range";
-      max_range = this->declare_parameter<double>(max_range_pdesc.name, (double)MAX_RANGE, max_range_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor use_imu_pdesc; 
-      use_imu_pdesc.name = "use_imu";
-      use_imu_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      use_imu_pdesc.description = "Use the IMU information in the motion update. If not the odometry is used.";
-      use_imu_ = this->declare_parameter<bool>(use_imu_pdesc.name, false, use_imu_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor use_os_pdesc; 
-      use_os_pdesc.name = "use_os";
-      use_os_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      use_os_pdesc.description = "Use an ouster as input of the sensor update. If not a velodyne is used.";
-      use_os_ = this->declare_parameter<bool>(use_os_pdesc.name, false, use_os_pdesc);
-      
-      rcl_interfaces::msg::ParameterDescriptor ignore_motion_pdesc; 
-      ignore_motion_pdesc.name = "ignore_motion";
-      ignore_motion_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      ignore_motion_pdesc.description = "Ignores any sensor information in the motion update and only applies noise to every particle.";
-      ignore_motion_ = this->declare_parameter<bool>(ignore_motion_pdesc.name, false, ignore_motion_pdesc);
-      
-      rcl_interfaces::msg::ParameterDescriptor use_best_pose_pdesc; 
-      use_best_pose_pdesc.name = "use_best_pose";
-      use_best_pose_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      use_best_pose_pdesc.description = "Uses the particle with the best weight as current pose estimation. Else, the weighted average of all particles is used.";
-      use_best_pose_ = this->declare_parameter<bool>(use_best_pose_pdesc.name, false, use_best_pose_pdesc);
-      
-      rcl_interfaces::msg::ParameterDescriptor reduction_cell_size_pdesc; 
-      reduction_cell_size_pdesc.name = "reduction_cell_size";
-      reduction_cell_size_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-      reduction_cell_size_pdesc.description = "Reduction cell size";
-      reduction_cell_size_ = this->declare_parameter<double>(reduction_cell_size_pdesc.name, 0.064, reduction_cell_size_pdesc);
-
-      rcl_interfaces::msg::ParameterDescriptor print_runtime_stats_pdesc; 
-      print_runtime_stats_pdesc.name = "print_runtime_stats";
-      print_runtime_stats_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-      print_runtime_stats_pdesc.description = "Ignores any sensor information in the motion update and only applies noise to every particle.";
-      print_runtime_stats_ = this->declare_parameter<bool>(print_runtime_stats_pdesc.name, true, print_runtime_stats_pdesc);      
-    }
-
+    declareParameters();
 
     if(map_file_name_ == "")
     {
@@ -199,11 +95,11 @@ public:
     }
     RCLCPP_INFO_STREAM(this->get_logger(), "Loading map from '" << map_file_name_ << "'");
 
-    auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(map_file_name_, free_map_, sigma);
+    auto map = createTSDFMap<CudaSubVoxelMap<FLOAT_T, FLOAT_T>, FLOAT_T, FLOAT_T>(map_file_name_, free_map_, sigma_);
     
     std::cout << "Reduction cell size is: " << reduction_cell_size_ << std::endl;
     tsdf_evaluator_ptr_ = std::make_shared<TSDFEvaluator>(
-      map, per_point_, a_hit, a_rand, a_max, max_range, reduction_cell_size_
+      map, per_point_, a_hit_, a_rand_, a_max_, max_range_, reduction_cell_size_
     );
     std::cout << "TSDF evaluator created!" << std::endl;
 
@@ -308,6 +204,220 @@ public:
     tsdf_evaluator_ptr_.reset();
 
     std::cout << "Finished mcl 3d!" << std::endl;
+  }
+
+  void declareParameters()
+  {
+    rcl_interfaces::msg::ParameterDescriptor map_file_pdesc; 
+    map_file_pdesc.name = "map_file";
+    map_file_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+    map_file_pdesc.description = "The path to a tsdf map (h5 format)";
+    map_file_name_ = this->declare_parameter<std::string>(map_file_pdesc.name, "", map_file_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor map_frame_pdesc; 
+    map_frame_pdesc.name = "map_frame";
+    map_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+    map_frame_pdesc.description = "Name of the map frame";
+    map_frame_ = this->declare_parameter<std::string>(map_frame_pdesc.name, "map", map_frame_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor odom_frame_pdesc; 
+    odom_frame_pdesc.name = "odom_frame";
+    odom_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+    odom_frame_pdesc.description = "Name of the odometry frame";
+    odom_frame_ = this->declare_parameter<std::string>(odom_frame_pdesc.name, "odom", odom_frame_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor robot_frame_pdesc; 
+    robot_frame_pdesc.name = "robot_frame";
+    robot_frame_pdesc.type = rclcpp::ParameterType::PARAMETER_STRING;  
+    robot_frame_pdesc.description = "Name of the robot frame";
+    robot_frame_ = this->declare_parameter<std::string>(robot_frame_pdesc.name, "base_link", robot_frame_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor per_point_pdesc; 
+    per_point_pdesc.name = "per_point";
+    per_point_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    per_point_pdesc.description = "Per point parallelization? Per particle parallelization otherwise.";
+    per_point_ = this->declare_parameter<bool>(per_point_pdesc.name, false, per_point_pdesc);
+  
+    rcl_interfaces::msg::ParameterDescriptor init_global_pdesc; 
+    init_global_pdesc.name = "init_global";
+    init_global_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    init_global_pdesc.description = "Initialize for global localization?";
+    init_global_ = this->declare_parameter<bool>(init_global_pdesc.name, false, init_global_pdesc);
+  
+    rcl_interfaces::msg::ParameterDescriptor a_hit_pdesc; 
+    a_hit_pdesc.name = "a_hit";
+    a_hit_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_hit_pdesc.description = "a hit";
+    a_hit_ = this->declare_parameter<double>(a_hit_pdesc.name, (double)A_HIT, a_hit_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_rand_pdesc; 
+    a_rand_pdesc.name = "a_rand";
+    a_rand_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_rand_pdesc.description = "a rand";
+    a_rand_ = this->declare_parameter<double>(a_rand_pdesc.name, (double)A_RAND, a_rand_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor a_max_pdesc; 
+    a_max_pdesc.name = "a_max";
+    a_max_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    a_max_pdesc.description = "a max";
+    a_max_ = this->declare_parameter<double>(a_max_pdesc.name, (double)A_MAX, a_max_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor max_range_pdesc; 
+    max_range_pdesc.name = "max_range";
+    max_range_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    max_range_pdesc.description = "max range";
+    max_range_ = this->declare_parameter<double>(max_range_pdesc.name, (double)MAX_RANGE, max_range_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor use_imu_pdesc; 
+    use_imu_pdesc.name = "use_imu";
+    use_imu_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    use_imu_pdesc.description = "Use the IMU information in the motion update. If not the odometry is used.";
+    use_imu_ = this->declare_parameter<bool>(use_imu_pdesc.name, false, use_imu_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor use_os_pdesc; 
+    use_os_pdesc.name = "use_os";
+    use_os_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    use_os_pdesc.description = "Use an ouster as input of the sensor update. If not a velodyne is used.";
+    use_os_ = this->declare_parameter<bool>(use_os_pdesc.name, false, use_os_pdesc);
+    
+    rcl_interfaces::msg::ParameterDescriptor ignore_motion_pdesc; 
+    ignore_motion_pdesc.name = "ignore_motion";
+    ignore_motion_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    ignore_motion_pdesc.description = "Ignores any sensor information in the motion update and only applies noise to every particle.";
+    ignore_motion_ = this->declare_parameter<bool>(ignore_motion_pdesc.name, false, ignore_motion_pdesc);
+    
+    rcl_interfaces::msg::ParameterDescriptor use_best_pose_pdesc; 
+    use_best_pose_pdesc.name = "use_best_pose";
+    use_best_pose_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    use_best_pose_pdesc.description = "Uses the particle with the best weight as current pose estimation. Else, the weighted average of all particles is used.";
+    use_best_pose_ = this->declare_parameter<bool>(use_best_pose_pdesc.name, false, use_best_pose_pdesc);
+    
+    rcl_interfaces::msg::ParameterDescriptor reduction_cell_size_pdesc; 
+    reduction_cell_size_pdesc.name = "reduction_cell_size";
+    reduction_cell_size_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    reduction_cell_size_pdesc.description = "Reduction cell size";
+    reduction_cell_size_ = this->declare_parameter<double>(reduction_cell_size_pdesc.name, 0.064, reduction_cell_size_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor print_runtime_stats_pdesc; 
+    print_runtime_stats_pdesc.name = "print_runtime_stats";
+    print_runtime_stats_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
+    print_runtime_stats_pdesc.description = "Ignores any sensor information in the motion update and only applies noise to every particle.";
+    print_runtime_stats_ = this->declare_parameter<bool>(print_runtime_stats_pdesc.name, true, print_runtime_stats_pdesc);
+
+    // old dynamic reconfigure
+    rcl_interfaces::msg::ParameterDescriptor number_particles_pdesc; 
+    number_particles_pdesc.name = "number_particles";
+    number_particles_pdesc.type = rclcpp::ParameterType::PARAMETER_INTEGER;  
+    number_particles_pdesc.description = "Number of particles";
+    {
+      rcl_interfaces::msg::IntegerRange range;
+      range.from_value = 1;
+      range.to_value = 10000;
+      range.step = 10;
+      number_particles_pdesc.integer_range.push_back(range);
+    };
+    number_particles_ = this->declare_parameter<int>(number_particles_pdesc.name, 800, number_particles_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor init_sigma_x_pdesc;
+    init_sigma_x_pdesc.name = "init_sigma_x";
+    init_sigma_x_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    init_sigma_x_pdesc.description = "Initial sigma X";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 10.0;
+      range.step = 0.05;
+      init_sigma_x_pdesc.floating_point_range.push_back(range);
+    }
+    init_sigma_x_ = this->declare_parameter<double>(init_sigma_x_pdesc.name, 0.5, init_sigma_x_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor init_sigma_y_pdesc;
+    init_sigma_y_pdesc.name = "init_sigma_y";
+    init_sigma_y_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    init_sigma_y_pdesc.description = "Initial sigma Y";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 10.0;
+      range.step = 0.05;
+      init_sigma_y_pdesc.floating_point_range.push_back(range);
+    }
+    init_sigma_y_ = this->declare_parameter<double>(init_sigma_y_pdesc.name, 0.5, init_sigma_y_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor init_sigma_z_pdesc;
+    init_sigma_z_pdesc.name = "init_sigma_z";
+    init_sigma_z_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    init_sigma_z_pdesc.description = "Initial sigma Z";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 10.0;
+      range.step = 0.05;
+      init_sigma_z_pdesc.floating_point_range.push_back(range);
+    }
+    init_sigma_z_ = this->declare_parameter<double>(init_sigma_z_pdesc.name, 0.5, init_sigma_z_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor init_sigma_roll_pdesc;
+    init_sigma_roll_pdesc.name = "init_sigma_roll";
+    init_sigma_roll_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    init_sigma_roll_pdesc.description = "Initial sigma roll";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 2.0 * M_PI;
+      range.step = 0.05;
+      init_sigma_roll_pdesc.floating_point_range.push_back(range);
+    }
+    init_sigma_roll_ = this->declare_parameter<double>(init_sigma_roll_pdesc.name, 0.0, init_sigma_roll_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor init_sigma_pitch_pdesc;
+    init_sigma_pitch_pdesc.name = "init_sigma_pitch";
+    init_sigma_pitch_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    init_sigma_pitch_pdesc.description = "Initial sigma pitch";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 2.0 * M_PI;
+      range.step = 0.05;
+      init_sigma_pitch_pdesc.floating_point_range.push_back(range);
+    }
+    init_sigma_pitch_ = this->declare_parameter<double>(init_sigma_pitch_pdesc.name, 0.0, init_sigma_pitch_pdesc);
+
+    rcl_interfaces::msg::ParameterDescriptor init_sigma_yaw_pdesc;
+    init_sigma_yaw_pdesc.name = "init_sigma_yaw";
+    init_sigma_yaw_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    init_sigma_yaw_pdesc.description = "Initial sigma yaw";
+    {
+      rcl_interfaces::msg::FloatingPointRange range;
+      range.from_value = 0.0;
+      range.to_value = 2.0 * M_PI;
+      range.step = 0.05;
+      init_sigma_yaw_pdesc.floating_point_range.push_back(range);
+    }
+    init_sigma_yaw_ = this->declare_parameter<double>(init_sigma_yaw_pdesc.name, 30.0 * M_PI / 180.0, init_sigma_yaw_pdesc);
+
+
+    // rcl_interfaces::msg::ParameterDescriptor init_sigma_yaw_pdesc;
+    // init_sigma_yaw_pdesc.name = "init_pitch_yaw";
+    // init_sigma_yaw_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
+    // init_sigma_yaw_pdesc.description = "Initial sigma yaw";
+    // {
+    //   rcl_interfaces::msg::FloatingPointRange range;
+    //   range.from_value = 0.0;
+    //   range.to_value = 2.0 * M_PI;
+    //   range.step = 0.05;
+    //   init_sigma_yaw_pdesc.floating_point_range.push_back(range);
+    // }
+    // init_sigma_yaw_ = this->declare_parameter<double>(init_sigma_yaw_pdesc.name, 30.0 * M_PI / 180.0, init_sigma_yaw_pdesc);
+  }
+
+  void parameterCallback()
+  {
+
+    if(particle_cloud_.isInitialized())
+    {
+      particle_cloud_.resize(number_particles_);
+    }
   }
 
   /**
@@ -777,6 +887,12 @@ private:
 
   // Uses the particle with the best weight as current pose estimation. If not the weighted average of all particles is used
   bool use_best_pose_ = false;
+
+  float sigma_ = SIGMA;
+  float a_hit_ = A_HIT;
+  float a_rand_ = A_RAND;
+  float a_max_ = A_MAX;
+  float max_range_ = MAX_RANGE;
 
   // Fix number of particles, which should be estimated in every step of the particle filter
   unsigned int number_particles_ = 800;
