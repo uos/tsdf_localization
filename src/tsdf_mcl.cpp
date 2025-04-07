@@ -232,248 +232,27 @@ public:
     // old dynamic reconfigure
     number_particles_    = this->get_parameter("number_particles").as_int();
     init_sigma_x_        = this->get_parameter("init_sigma_x").as_double();
+    init_sigma_y_        = this->get_parameter("init_sigma_y").as_double();
+    init_sigma_z_        = this->get_parameter("init_sigma_z").as_double();
+    init_sigma_roll_     = this->get_parameter("init_sigma_roll").as_double();
+    init_sigma_pitch_    = this->get_parameter("init_sigma_pitch").as_double();
+    init_sigma_yaw_      = this->get_parameter("init_sigma_yaw").as_double();
+    delta_update_dist_   = this->get_parameter("delta_update_dist").as_double();
+    delta_update_angle_  = this->get_parameter("delta_update_angle").as_double();
+    use_cuda_            = this->get_parameter("use_cuda").as_bool();
 
-
-    // rcl_interfaces::msg::ParameterDescriptor init_sigma_y_pdesc;
-    // init_sigma_y_pdesc.name = "init_sigma_y";
-    // init_sigma_y_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // init_sigma_y_pdesc.description = "Initial sigma Y";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 10.0;
-    //   range.step = 0.05;
-    //   init_sigma_y_pdesc.floating_point_range.push_back(range);
-    // }
-    // init_sigma_y_ = this->declare_parameter<double>(init_sigma_y_pdesc.name, 0.5, init_sigma_y_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor init_sigma_z_pdesc;
-    // init_sigma_z_pdesc.name = "init_sigma_z";
-    // init_sigma_z_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // init_sigma_z_pdesc.description = "Initial sigma Z";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 10.0;
-    //   range.step = 0.05;
-    //   init_sigma_z_pdesc.floating_point_range.push_back(range);
-    // }
-    // init_sigma_z_ = this->declare_parameter<double>(init_sigma_z_pdesc.name, 0.5, init_sigma_z_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor init_sigma_roll_pdesc;
-    // init_sigma_roll_pdesc.name = "init_sigma_roll";
-    // init_sigma_roll_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // init_sigma_roll_pdesc.description = "Initial sigma roll";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 2.0 * M_PI;
-    //   range.step = 0.05;
-    //   init_sigma_roll_pdesc.floating_point_range.push_back(range);
-    // }
-    // init_sigma_roll_ = this->declare_parameter<double>(init_sigma_roll_pdesc.name, 0.0, init_sigma_roll_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor init_sigma_pitch_pdesc;
-    // init_sigma_pitch_pdesc.name = "init_sigma_pitch";
-    // init_sigma_pitch_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // init_sigma_pitch_pdesc.description = "Initial sigma pitch";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 2.0 * M_PI;
-    //   range.step = 0.05;
-    //   init_sigma_pitch_pdesc.floating_point_range.push_back(range);
-    // }
-    // init_sigma_pitch_ = this->declare_parameter<double>(init_sigma_pitch_pdesc.name, 0.0, init_sigma_pitch_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor init_sigma_yaw_pdesc;
-    // init_sigma_yaw_pdesc.name = "init_sigma_yaw";
-    // init_sigma_yaw_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // init_sigma_yaw_pdesc.description = "Initial sigma yaw";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 2.0 * M_PI;
-    //   // range.step = 0.05;
-    //   init_sigma_yaw_pdesc.floating_point_range.push_back(range);
-    // }
-    // init_sigma_yaw_ = this->declare_parameter<double>(init_sigma_yaw_pdesc.name, 0.5, init_sigma_yaw_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor delta_update_dist_pdesc;
-    // delta_update_dist_pdesc.name = "resampling.delta_update_dist";
-    // delta_update_dist_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // delta_update_dist_pdesc.description = "Moved distance at which a resampling step should executed";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 10.0;
-    //   delta_update_dist_pdesc.floating_point_range.push_back(range);
-    // }
-    // delta_update_dist_ = this->declare_parameter<double>(delta_update_dist_pdesc.name, 0.03, delta_update_dist_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor delta_update_angle_pdesc;
-    // delta_update_angle_pdesc.name = "resampling.delta_update_angle";
-    // delta_update_angle_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // delta_update_angle_pdesc.description = "Rotated angle at which a resampling step should executed (in radian)";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value = 0.0;
-    //   range.to_value = 2.0 * M_PI;
-    //   delta_update_angle_pdesc.floating_point_range.push_back(range);
-    // }
-    // delta_update_angle_ = this->declare_parameter<double>(delta_update_angle_pdesc.name, 0.1, delta_update_angle_pdesc);
-
-
-    // // gen.add("use_cuda", bool_t, 0, "Using cuda for the sensor-update", True)
-    // rcl_interfaces::msg::ParameterDescriptor use_cuda_pdesc;
-    // use_cuda_pdesc.name = "use_cuda";
-    // use_cuda_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;  
-    // use_cuda_pdesc.description = "Use cuda for the sensor-update";
-    // use_cuda_ = this->declare_parameter<bool>(use_cuda_pdesc.name, true, use_cuda_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_1_pdesc;
-    // a_1_pdesc.name = "motion_update.a_1";
-    // a_1_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;
-    // a_1_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_1_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_1 = this->declare_parameter<double>(a_1_pdesc.name, 1.0, a_1_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_2_pdesc;
-    // a_2_pdesc.name = "motion_update.a_2";
-    // a_2_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_2_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_2_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_2 = this->declare_parameter<double>(a_2_pdesc.name, 0.0, a_2_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_3_pdesc;
-    // a_3_pdesc.name = "motion_update.a_3";
-    // a_3_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_3_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_3_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_3 = this->declare_parameter<double>(a_3_pdesc.name, 1.0, a_3_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_4_pdesc;
-    // a_4_pdesc.name = "motion_update.a_4";
-    // a_4_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_4_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_4_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_4 = this->declare_parameter<double>(a_4_pdesc.name, 0.0, a_4_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_5_pdesc;
-    // a_5_pdesc.name = "motion_update.a_5";
-    // a_5_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_5_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_5_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_5 = this->declare_parameter<double>(a_5_pdesc.name, 1.0, a_5_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_6_pdesc;
-    // a_6_pdesc.name = "motion_update.a_6";
-    // a_6_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_6_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_6_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_6 = this->declare_parameter<double>(a_6_pdesc.name, 0.0, a_6_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_7_pdesc;
-    // a_7_pdesc.name = "motion_update.a_7";
-    // a_7_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_7_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_7_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_7 = this->declare_parameter<double>(a_7_pdesc.name, 0.0, a_7_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_8_pdesc;
-    // a_8_pdesc.name = "motion_update.a_8";
-    // a_8_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_8_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_8_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_8 = this->declare_parameter<double>(a_8_pdesc.name, 1.0, a_8_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_9_pdesc;
-    // a_9_pdesc.name = "motion_update.a_9";
-    // a_9_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_9_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_9_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_9 = this->declare_parameter<double>(a_9_pdesc.name, 0.0, a_9_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_10_pdesc;
-    // a_10_pdesc.name = "motion_update.a_10";
-    // a_10_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_10_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_10_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_10 = this->declare_parameter<double>(a_10_pdesc.name, 1.0, a_10_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_11_pdesc;
-    // a_11_pdesc.name = "motion_update.a_11";
-    // a_11_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_11_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_11_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_11 = this->declare_parameter<double>(a_11_pdesc.name, 0.0, a_11_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor a_12_pdesc;
-    // a_12_pdesc.name = "motion_update.a_12";
-    // a_12_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;  
-    // a_12_pdesc.description = "Parameter for the motion model";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 30.0;
-    //   a_12_pdesc.floating_point_range.push_back(range);
-    // }
-    // a_12 = this->declare_parameter<double>(a_12_pdesc.name, 1.0, a_12_pdesc);
+    a_1                  = this->get_parameter("motion_update.a_1").as_double();
+    a_2                  = this->get_parameter("motion_update.a_2").as_double();
+    a_3                  = this->get_parameter("motion_update.a_3").as_double();
+    a_4                  = this->get_parameter("motion_update.a_4").as_double();
+    a_5                  = this->get_parameter("motion_update.a_5").as_double();
+    a_6                  = this->get_parameter("motion_update.a_6").as_double();
+    a_7                  = this->get_parameter("motion_update.a_7").as_double();
+    a_8                  = this->get_parameter("motion_update.a_8").as_double();
+    a_9                  = this->get_parameter("motion_update.a_9").as_double();
+    a_10                 = this->get_parameter("motion_update.a_10").as_double();
+    a_11                 = this->get_parameter("motion_update.a_11").as_double();
+    a_12                 = this->get_parameter("motion_update.a_12").as_double();
 
     
     // // gen.add("lin_scale", double_t, 0, "Linear scale of the motion update that only applies noise to the particles", 0.1, 0.0, 10.0)
