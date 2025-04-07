@@ -261,6 +261,7 @@ endif(CUDA_FOUND)
 ####### PCL2 to SCAN CONVERTER
 add_library(tsdf_mcl_component SHARED 
   src/tsdf_mcl.cpp
+  src/tsdf_mcl_params.cpp
   ${TSDF_LOC_SRC})
 
 ## Specify libraries to link a library or executable target against
