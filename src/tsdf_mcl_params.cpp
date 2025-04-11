@@ -117,11 +117,11 @@ void declareMCLParams(rclcpp::Node* node)
   {
     rcl_interfaces::msg::IntegerRange range;
     range.from_value = 1;
-    range.to_value = 100000;
+    range.to_value = 1000000;
     range.step = 1;
     number_particles_pdesc.integer_range.push_back(range);
   };
-  node->declare_parameter<int>(number_particles_pdesc.name, 800, number_particles_pdesc);
+  node->declare_parameter<int>(number_particles_pdesc.name, 100000, number_particles_pdesc);
 
   rcl_interfaces::msg::ParameterDescriptor init_sigma_x_pdesc;
   init_sigma_x_pdesc.name = "init_sigma_x";
@@ -405,6 +405,7 @@ void declareMCLParams(rclcpp::Node* node)
   }
   node->declare_parameter<double>(ang_scale_pdesc.name, 0.1, ang_scale_pdesc);
 
+  // TODO: how to make enum here?
   rcl_interfaces::msg::ParameterDescriptor evaluation_model_pdesc;
   evaluation_model_pdesc.name = "sensor_update.evaluation_model";
   evaluation_model_pdesc.type = rclcpp::ParameterType::PARAMETER_INTEGER;
@@ -417,6 +418,21 @@ void declareMCLParams(rclcpp::Node* node)
     evaluation_model_pdesc.integer_range.push_back(range);
   };
   node->declare_parameter<int>(evaluation_model_pdesc.name, 1, evaluation_model_pdesc);
+
+
+  rcl_interfaces::msg::ParameterDescriptor resampling_method_pdesc;
+  resampling_method_pdesc.name = "resampling.method";
+  resampling_method_pdesc.type = rclcpp::ParameterType::PARAMETER_INTEGER;
+  resampling_method_pdesc.description = "0 = WheelResampler, 1 = ResidualResampler, 2 = SystematicResampler, 3 = ResidualSystematicResampler, 4 = MetropolisResampler(50), 5 = RejectionResampler().";
+  {
+    rcl_interfaces::msg::IntegerRange range;
+    range.from_value = 0;
+    range.to_value = 5;
+    range.step = 1;
+    resampling_method_pdesc.integer_range.push_back(range);
+  };
+  node->declare_parameter<int>(resampling_method_pdesc.name, 1, resampling_method_pdesc);
+
 
   // // enum hack
   // rcl_interfaces::msg::ParameterDescriptor evaluation_naiv_pdesc;

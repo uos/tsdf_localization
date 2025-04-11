@@ -71,6 +71,32 @@ using std::placeholders::_2;
 namespace tsdf_localization
 {
 
+std::unique_ptr<Resampler> make_resampler(
+  int resampling_method_)
+{
+  switch(resampling_method_)
+  {
+    case 0:
+      return std::make_unique<WheelResampler>();
+      break;
+    case 1:
+      return std::make_unique<ResidualResampler>();
+      break;
+    case 2:
+      return std::make_unique<SystematicResampler>();
+      break;
+    case 3:
+      return std::make_unique<ResidualSystematicResampler>();
+      break;
+    case 4:
+      return std::make_unique<MetropolisResampler>(50);
+      break;
+    default:
+      return std::make_unique<RejectionResampler>();
+      break;
+  }
+}
+
 class TSDFMCLNode : public rclcpp::Node
 {
 public:
@@ -124,7 +150,7 @@ public:
     }
 
     // resampler_ptr_ = std::make_unique<ResidualSystematicResampler>();
-    resampler_ptr_ = std::make_unique<ResidualResampler>();
+    // resampler_ptr_ = std::make_unique<ResidualResampler>();
     
     ss_stamp << "stamp:\n";
 
@@ -193,6 +219,11 @@ public:
     current_pose_pub_ptr_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("current_pose", 1);
 
     tf_broadcaster_ptr_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    if(particle_cloud_.isInitialized())
+    {
+      particle_cloud_.resize(number_particles_);
+    }
   }
 
   ~TSDFMCLNode() 
@@ -213,6 +244,8 @@ public:
 
     std::cout << "Finished mcl 3d!" << std::endl;
   }
+
+
 
   void getParameters()
   {
@@ -258,10 +291,15 @@ public:
     a_11                 = this->get_parameter("motion_update.a_11").as_double();
     a_12                 = this->get_parameter("motion_update.a_12").as_double();
 
+    particle_cloud_.setMotionParameters(a_1, a_2, a_3, a_4, a_5, a_6, a_7, a_8, a_9, a_10, a_11, a_12);
+
     lin_scale_           = this->get_parameter("motion_update.lin_scale").as_double();
     ang_scale_           = this->get_parameter("motion_update.ang_scale").as_double();
 
     evaluation_model_    = this->get_parameter("sensor_update.evaluation_model").as_int();
+  
+    int resampling_method_ = this->get_parameter("resampling.method").as_int();
+    resampler_ptr_ = make_resampler(resampling_method_);
   }
 
   rcl_interfaces::msg::SetParametersResult parametersCallback(
@@ -274,6 +312,8 @@ public:
 
     for(const auto &param: parameters)
     {
+      std::cout << param.get_name() << " changed!" << std::endl;
+
       if(param.get_name() == "number_particles")
       {
         int number_particles = param.as_int();
@@ -282,20 +322,33 @@ public:
           number_particles_ = number_particles;
           particle_cloud_.resize(number_particles_);
         }
+
+        if(particle_cloud_.isInitialized())
+        {
+          particle_cloud_.resize(number_particles_);
+        }
+      }
+
+      if(param.get_name() == "resampling.method")
+      {
+        int resampling_method_ = this->get_parameter("resampling.method").as_int();
+        resampler_ptr_ = make_resampler(resampling_method_);
+      }
+
+      // if(param.get_name() == "motion_model.a_1")
+      // {
+      //   std::cout <<  "TODO!" << std::endl;
+      // }
+
+      if(param.get_name() == "use_cuda")
+      {
+        use_cuda_ = param.as_bool();
       }
     }
 
     return result;
   }
 
-  // void parameterCallback()
-  // {
-
-  //   if(particle_cloud_.isInitialized())
-  //   {
-  //     particle_cloud_.resize(number_particles_);
-  //   }
-  // }
 
   /**
  * @brief Callback to get the initial pose etsimation for the algorithm  
@@ -337,7 +390,7 @@ public:
   void scanOdomCallback(
     const nav_msgs::msg::Odometry::ConstSharedPtr& odom,
     const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud)
-  { 
+  {
     // RCLCPP_INFO(this->get_logger(), "scanOdomCallback!");
     static tf2::BufferCore tf_buffer;
     static tf2_ros::TransformListener tf_listener(tf_buffer);
