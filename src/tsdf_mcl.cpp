@@ -123,7 +123,8 @@ public:
       std::cout << "Not using any sensor for motion update..." << std::endl;
     }
 
-    resampler_ptr_ = std::make_unique<ResidualSystematicResampler>();
+    // resampler_ptr_ = std::make_unique<ResidualSystematicResampler>();
+    resampler_ptr_ = std::make_unique<ResidualResampler>();
     
     ss_stamp << "stamp:\n";
 
@@ -656,7 +657,7 @@ public:
         }
         catch (std::runtime_error& e)
         {
-          std::cout << "CUDA Execption occured!" << std::endl;
+          std::cout << "CUDA Exception occured!" << std::endl;
           return;
         }
 
