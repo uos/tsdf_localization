@@ -91,6 +91,9 @@ public:
     declareMCLParams(this);
     // get parameters initially
     getParameters();
+    // get events when parameters are changed
+    callback_handle_ = this->add_on_set_parameters_callback(
+      std::bind(&TSDFMCLNode::parametersCallback, this, _1));
 
     if(map_file_name_ == "")
     {
@@ -237,8 +240,8 @@ public:
     init_sigma_roll_     = this->get_parameter("init_sigma_roll").as_double();
     init_sigma_pitch_    = this->get_parameter("init_sigma_pitch").as_double();
     init_sigma_yaw_      = this->get_parameter("init_sigma_yaw").as_double();
-    delta_update_dist_   = this->get_parameter("delta_update_dist").as_double();
-    delta_update_angle_  = this->get_parameter("delta_update_angle").as_double();
+    delta_update_dist_   = this->get_parameter("resampling.delta_update_dist").as_double();
+    delta_update_angle_  = this->get_parameter("resampling.delta_update_angle").as_double();
     use_cuda_            = this->get_parameter("use_cuda").as_bool();
 
     a_1                  = this->get_parameter("motion_update.a_1").as_double();
@@ -254,61 +257,44 @@ public:
     a_11                 = this->get_parameter("motion_update.a_11").as_double();
     a_12                 = this->get_parameter("motion_update.a_12").as_double();
 
-    
-    // // gen.add("lin_scale", double_t, 0, "Linear scale of the motion update that only applies noise to the particles", 0.1, 0.0, 10.0)
-    // // gen.add("ang_scale", double_t, 0, "Angular scale of the motion update that only applies noise to the particles", 0.1, 0.0, 10.0)
+    lin_scale_           = this->get_parameter("motion_update.lin_scale").as_double();
+    ang_scale_           = this->get_parameter("motion_update.ang_scale").as_double();
 
-    // rcl_interfaces::msg::ParameterDescriptor lin_scale_pdesc;
-    // lin_scale_pdesc.name = "motion_update.lin_scale";
-    // lin_scale_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;
-    // lin_scale_pdesc.description = "Linear scale of the motion update that only applies noise to the particles";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 10.0;
-    //   lin_scale_pdesc.floating_point_range.push_back(range);
-    // }
-    // lin_scale_ = this->declare_parameter<double>(lin_scale_pdesc.name, 0.1, lin_scale_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor ang_scale_pdesc;
-    // ang_scale_pdesc.name = "motion_update.ang_scale";
-    // ang_scale_pdesc.type = rclcpp::ParameterType::PARAMETER_DOUBLE;
-    // ang_scale_pdesc.description = "Angular scale of the motion update that only applies noise to the particles";
-    // {
-    //   rcl_interfaces::msg::FloatingPointRange range;
-    //   range.from_value =  0.0;
-    //   range.to_value   = 10.0;
-    //   ang_scale_pdesc.floating_point_range.push_back(range);
-    // }
-    // ang_scale_ = this->declare_parameter<double>(ang_scale_pdesc.name, 0.1, ang_scale_pdesc);
-
-
-    // // enum hack
-    // rcl_interfaces::msg::ParameterDescriptor evaluation_naiv_pdesc;
-    // evaluation_naiv_pdesc.name = "sensor_update.evaluation.naiv";
-    // evaluation_naiv_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
-    // evaluation_naiv_pdesc.description = "Use naiv range evaluation";
-    // this->declare_parameter<bool>(evaluation_naiv_pdesc.name, false, evaluation_naiv_pdesc);
-
-    // rcl_interfaces::msg::ParameterDescriptor evaluation_likelihood_pdesc;
-    // evaluation_likelihood_pdesc.name = "sensor_update.evaluation.likelihood";
-    // evaluation_likelihood_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
-    // evaluation_likelihood_pdesc.description = "Use likelihood range evaluation";
-    // this->declare_parameter<bool>(evaluation_likelihood_pdesc.name, true, evaluation_likelihood_pdesc);
-
-    // evaluation_enum = gen.enum([ gen.const("Naiv",      int_t, 0, "Naiv range evaluation"),
-    //   gen.const("Likelihood",     int_t, 1, "Likelihood range evaluation")],
-    //   "An enum to set range evaluation model")
+    evaluation_model_    = this->get_parameter("sensor_update.evaluation_model").as_int();
   }
 
-  void parameterCallback()
+  rcl_interfaces::msg::SetParametersResult parametersCallback(
+    const std::vector<rclcpp::Parameter> &parameters)
   {
+    rcl_interfaces::msg::SetParametersResult result;
+    result.successful = true;
+    result.reason = "success";
+    // Here update class attributes, do some actions, etc.
 
-    if(particle_cloud_.isInitialized())
+    for(const auto &param: parameters)
     {
-      particle_cloud_.resize(number_particles_);
+      if(param.get_name() == "number_particles")
+      {
+        int number_particles = param.as_int();
+        if(number_particles != number_particles_)
+        {
+          number_particles_ = number_particles;
+          particle_cloud_.resize(number_particles_);
+        }
+      }
     }
+
+    return result;
   }
+
+  // void parameterCallback()
+  // {
+
+  //   if(particle_cloud_.isInitialized())
+  //   {
+  //     particle_cloud_.resize(number_particles_);
+  //   }
+  // }
 
   /**
  * @brief Callback to get the initial pose etsimation for the algorithm  
@@ -881,7 +867,9 @@ private:
   std::vector<double> avg_diff_pitch;
   std::vector<double> avg_diff_yaw;
 
-  
+  // parameter callback
+  OnSetParametersCallbackHandle::SharedPtr callback_handle_;
+
   // Subscriber + Publisher + Services
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_ptr_;
 

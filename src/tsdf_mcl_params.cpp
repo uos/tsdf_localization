@@ -405,19 +405,31 @@ void declareMCLParams(rclcpp::Node* node)
   }
   node->declare_parameter<double>(ang_scale_pdesc.name, 0.1, ang_scale_pdesc);
 
+  rcl_interfaces::msg::ParameterDescriptor evaluation_model_pdesc;
+  evaluation_model_pdesc.name = "sensor_update.evaluation_model";
+  evaluation_model_pdesc.type = rclcpp::ParameterType::PARAMETER_INTEGER;
+  evaluation_model_pdesc.description = "0 = naiv, 1 = likelihood.";
+  {
+    rcl_interfaces::msg::IntegerRange range;
+    range.from_value = 0;
+    range.to_value = 1;
+    range.step = 1;
+    evaluation_model_pdesc.integer_range.push_back(range);
+  };
+  node->declare_parameter<int>(evaluation_model_pdesc.name, 1, evaluation_model_pdesc);
 
-  // enum hack
-  rcl_interfaces::msg::ParameterDescriptor evaluation_naiv_pdesc;
-  evaluation_naiv_pdesc.name = "sensor_update.evaluation.naiv";
-  evaluation_naiv_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
-  evaluation_naiv_pdesc.description = "Use naiv range evaluation";
-  node->declare_parameter<bool>(evaluation_naiv_pdesc.name, false, evaluation_naiv_pdesc);
+  // // enum hack
+  // rcl_interfaces::msg::ParameterDescriptor evaluation_naiv_pdesc;
+  // evaluation_naiv_pdesc.name = "sensor_update.evaluation.naiv";
+  // evaluation_naiv_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
+  // evaluation_naiv_pdesc.description = "Use naiv range evaluation";
+  // node->declare_parameter<bool>(evaluation_naiv_pdesc.name, false, evaluation_naiv_pdesc);
 
-  rcl_interfaces::msg::ParameterDescriptor evaluation_likelihood_pdesc;
-  evaluation_likelihood_pdesc.name = "sensor_update.evaluation.likelihood";
-  evaluation_likelihood_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
-  evaluation_likelihood_pdesc.description = "Use likelihood range evaluation";
-  node->declare_parameter<bool>(evaluation_likelihood_pdesc.name, true, evaluation_likelihood_pdesc);
+  // rcl_interfaces::msg::ParameterDescriptor evaluation_likelihood_pdesc;
+  // evaluation_likelihood_pdesc.name = "sensor_update.evaluation.likelihood";
+  // evaluation_likelihood_pdesc.type = rclcpp::ParameterType::PARAMETER_BOOL;
+  // evaluation_likelihood_pdesc.description = "Use likelihood range evaluation";
+  // node->declare_parameter<bool>(evaluation_likelihood_pdesc.name, true, evaluation_likelihood_pdesc);
 }
 
 } // namespace tsdf_localization
