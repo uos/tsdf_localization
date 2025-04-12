@@ -9,29 +9,46 @@ namespace tsdf_localization
 class ResidualResampler : public Resampler
 {
 public:
-    void resample(ParticleCloud& particle_cloud) override
+  void resample(ParticleCloud& particle_cloud) override
+  {
+    // float weight_sum = 0.0;
+    // float weight_max = 0.0;
+
+    // // check weights
+    // for(size_t i=0; i<particle_cloud.size(); i++)
+    // {
+    //   auto& particle = particle_cloud[i];
+    //   weight_sum += particle.second;
+    //   weight_max = std::max(weight_max, particle.second);
+    // }
+
+    // std::cout << "Weight Stats:" << std::endl;
+    // std::cout << "- max: " << weight_max << std::endl;
+    // std::cout << "- sum: " << weight_sum << std::endl;
+
+
+
+    std::uniform_int_distribution<size_t> uniform_distribution(0, particle_cloud.size() - 1);
+
+    std::vector<Particle> new_particles;
+    new_particles.reserve(particle_cloud.size());
+
+    while (new_particles.size() < particle_cloud.size())
     {
-        std::uniform_int_distribution<size_t> uniform_distribution(0, particle_cloud.size() - 1);
+      auto random_index = uniform_distribution(*m_generator_ptr);
+      auto& particle = particle_cloud[random_index];
+      auto expected_insertions = particle.second * particle_cloud.size();
+      auto insertions_left = particle_cloud.size() - new_particles.size();
+      auto insertions = expected_insertions <= insertions_left ? expected_insertions : insertions_left;
 
-        std::vector<Particle> new_particles;
-        new_particles.reserve(particle_cloud.size());
-
-        while (new_particles.size() < particle_cloud.size())
-        {
-            auto random_index = uniform_distribution(*m_generator_ptr);
-            auto& particle = particle_cloud[random_index];
-            auto expected_insertions = particle.second * particle_cloud.size();
-            auto insertions_left = particle_cloud.size() - new_particles.size();
-            auto insertions = expected_insertions <= insertions_left ? expected_insertions : insertions_left;
-
-            for (size_t index = 0; index < insertions; ++index)
-            {
-                new_particles.push_back(particle);
-            }
-        }
-
-        particle_cloud.particles() = std::move(new_particles);
+      for (size_t index = 0; index < insertions; ++index)
+      {
+        new_particles.push_back(particle);
+      }
     }
+
+    particle_cloud.particles() = std::move(new_particles);
+  }
 
 };
 

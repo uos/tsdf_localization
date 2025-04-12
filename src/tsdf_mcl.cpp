@@ -258,7 +258,7 @@ public:
     a_hit_               = this->get_parameter("a_hit").as_double();
     a_rand_              = this->get_parameter("a_rand").as_double();
     a_max_               = this->get_parameter("a_max").as_double();
-    max_range_           = this->get_parameter("max_range").as_double();
+    max_range_           = this->get_parameter("range_max").as_double();
     use_imu_             = this->get_parameter("use_imu").as_bool();
     use_os_              = this->get_parameter("use_os").as_bool();
     ignore_motion_       = this->get_parameter("ignore_motion").as_bool();
@@ -268,30 +268,31 @@ public:
 
     // old dynamic reconfigure
     number_particles_    = this->get_parameter("number_particles").as_int();
-    init_sigma_x_        = this->get_parameter("init_sigma_x").as_double();
-    init_sigma_y_        = this->get_parameter("init_sigma_y").as_double();
-    init_sigma_z_        = this->get_parameter("init_sigma_z").as_double();
-    init_sigma_roll_     = this->get_parameter("init_sigma_roll").as_double();
-    init_sigma_pitch_    = this->get_parameter("init_sigma_pitch").as_double();
-    init_sigma_yaw_      = this->get_parameter("init_sigma_yaw").as_double();
+    
+    const std::vector<double> init_guess_noise_ = this->get_parameter("initial_guess_noise").as_double_array();
+    init_sigma_x_        = init_guess_noise_[0];
+    init_sigma_y_        = init_guess_noise_[1];
+    init_sigma_z_        = init_guess_noise_[2];
+    init_sigma_roll_     = init_guess_noise_[3];
+    init_sigma_pitch_    = init_guess_noise_[4];
+    init_sigma_yaw_      = init_guess_noise_[5];
+
     delta_update_dist_   = this->get_parameter("resampling.delta_update_dist").as_double();
     delta_update_angle_  = this->get_parameter("resampling.delta_update_angle").as_double();
     use_cuda_            = this->get_parameter("use_cuda").as_bool();
 
-    a_1                  = this->get_parameter("motion_update.a_1").as_double();
-    a_2                  = this->get_parameter("motion_update.a_2").as_double();
-    a_3                  = this->get_parameter("motion_update.a_3").as_double();
-    a_4                  = this->get_parameter("motion_update.a_4").as_double();
-    a_5                  = this->get_parameter("motion_update.a_5").as_double();
-    a_6                  = this->get_parameter("motion_update.a_6").as_double();
-    a_7                  = this->get_parameter("motion_update.a_7").as_double();
-    a_8                  = this->get_parameter("motion_update.a_8").as_double();
-    a_9                  = this->get_parameter("motion_update.a_9").as_double();
-    a_10                 = this->get_parameter("motion_update.a_10").as_double();
-    a_11                 = this->get_parameter("motion_update.a_11").as_double();
-    a_12                 = this->get_parameter("motion_update.a_12").as_double();
 
-    particle_cloud_.setMotionParameters(a_1, a_2, a_3, a_4, a_5, a_6, a_7, a_8, a_9, a_10, a_11, a_12);
+    const std::vector<double> a =  this->get_parameter("motion_update.a").as_double_array();
+    std::cout << "Set Motion parameters:" << std::endl;
+    std::cout << "[a_1, ..., a_12] = [";
+
+    for(size_t i=0; i<12; i++)
+    {
+      std::cout << a[i] << ", ";
+    }
+    std::cout << "]" << std::endl;
+
+    particle_cloud_.setMotionParameters(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11]);
 
     lin_scale_           = this->get_parameter("motion_update.lin_scale").as_double();
     ang_scale_           = this->get_parameter("motion_update.ang_scale").as_double();
@@ -331,18 +332,30 @@ public:
 
       if(param.get_name() == "resampling.method")
       {
-        int resampling_method_ = this->get_parameter("resampling.method").as_int();
+        int resampling_method_ = param.as_int();
         resampler_ptr_ = make_resampler(resampling_method_);
       }
 
-      // if(param.get_name() == "motion_model.a_1")
-      // {
-      //   std::cout <<  "TODO!" << std::endl;
-      // }
+      if(param.get_name() == "motion_model.a")
+      {
+        std::vector<double> a =  param.as_double_array();
+        particle_cloud_.setMotionParameters(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11]);
+      }
 
       if(param.get_name() == "use_cuda")
       {
         use_cuda_ = param.as_bool();
+      }
+
+      if(param.get_name() == "initial_guess_noise")
+      {
+        const std::vector<double> init_guess_noise_ = param.as_double_array();
+        init_sigma_x_        = init_guess_noise_[0];
+        init_sigma_y_        = init_guess_noise_[1];
+        init_sigma_z_        = init_guess_noise_[2];
+        init_sigma_roll_     = init_guess_noise_[3];
+        init_sigma_pitch_    = init_guess_noise_[4];
+        init_sigma_yaw_      = init_guess_noise_[5];
       }
     }
 
@@ -360,7 +373,7 @@ public:
 
     initial_pose_ = pose_with_covariance->pose.pose;
 
-    initial_pose_.position.z = -0.1;
+    // initial_pose_.position.z = -0.1;
     pose_initialized_ = true;
 
     // TODOs:

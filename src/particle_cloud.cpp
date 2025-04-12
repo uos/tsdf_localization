@@ -155,6 +155,7 @@ bool ParticleCloud::isInitialized() const
 
 void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
 {
+  std::cout << "MOTION UPDATE:" << std::endl;
   std::vector<Particle> new_particles(m_particles.size());
 
   // std::normal_distribution<> distribution_linear_x{0, 5 * sqrt(odom.twist.covariance[0])};
@@ -179,28 +180,42 @@ void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
   rclcpp::Time current_time = clock_->now();
   
   FLOAT_T time_diff = (current_time - m_last_time).seconds();
-  m_last_time = current_time;
-
-  ref_pose[0] = ref_pose[0] + linear_velocity * time_diff * cos(ref_pose[5] + (angular_velocity / 2 * time_diff));
-  ref_pose[1] = ref_pose[1] + linear_velocity * time_diff * sin(ref_pose[5] + (angular_velocity / 2 * time_diff));
-  ref_pose[5] = ref_pose[5] + angular_velocity * time_diff;
-
-  auto ref_dist = std::sqrt(ref_pose[0] * ref_pose[0] + ref_pose[1] * ref_pose[1] + ref_pose[2] * ref_pose[2]);
-
-
-  auto d = linear_velocity * time_diff;
-  auto d_square = d * d;
-
-  auto theta = angular_velocity * time_diff;
-  auto theta_square = theta * theta;
-
-  std::normal_distribution<> distribution_linear_x{d, a_1_ * d_square + a_2_ * theta_square};
-  std::normal_distribution<> distribution_linear_y{0, a_3_ * d_square + a_4_ * theta_square};
-  std::normal_distribution<> distribution_linear_z{0, a_5_ * d_square + a_6_ * theta_square};
   
-  std::normal_distribution<> distribution_roll{0, a_7_ * d_square + a_8_ * theta_square};
-  std::normal_distribution<> distribution_pitch{0, a_9_ * d_square + a_10_ * theta_square};
-  std::normal_distribution<> distribution_yaw{theta, a_11_ * d_square + a_12_ * theta_square};
+  std::cout << "- time delta: " << time_diff << "s" << std::endl;
+
+  
+
+  // auto ref_dist = std::sqrt(ref_pose[0] * ref_pose[0] + ref_pose[1] * ref_pose[1] + ref_pose[2] * ref_pose[2]);
+
+  // const float ref_dist = std::sqrt(x_delta * x_delta + y_delta * y_delta);
+
+  // std::cout << "- distance delta: " << ref_dist << std::endl;
+
+
+  const float d = linear_velocity * time_diff;
+  const float d_square = d * d;
+
+  std::cout << "- distance delta: " << d << "m" << std::endl;
+
+  const float theta = angular_velocity * time_diff;
+  const float theta_square = theta * theta;
+
+  std::cout << "- angle delta: " << theta << std::endl;
+
+  const float x_delta = d * cos(ref_pose[5] + (theta / 2.0));
+  const float y_delta = d * sin(ref_pose[5] + (theta / 2.0));
+
+  ref_pose[0] = ref_pose[0] + x_delta;
+  ref_pose[1] = ref_pose[1] + y_delta;
+  ref_pose[5] = ref_pose[5] + theta;
+
+  std::normal_distribution<float> distribution_linear_x{d, a_1_ * d_square + a_2_ * theta_square};
+  std::normal_distribution<float> distribution_linear_y{0, a_3_ * d_square + a_4_ * theta_square};
+  std::normal_distribution<float> distribution_linear_z{0, a_5_ * d_square + a_6_ * theta_square};
+  
+  std::normal_distribution<float> distribution_roll{0, a_7_ * d_square + a_8_ * theta_square};
+  std::normal_distribution<float> distribution_pitch{0, a_9_ * d_square + a_10_ * theta_square};
+  std::normal_distribution<float> distribution_yaw{theta, a_11_ * d_square + a_12_ * theta_square};
 
   for(auto index = 0u; index < m_particles.size(); index++)
   { 
@@ -224,13 +239,14 @@ void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
     // auto pitch = random_velocity_pitch * time_diff;
     // auto yaw = random_velocity_yaw * time_diff;
 
-    auto dx = distribution_linear_x(*m_generator_ptr);
-    auto dy = distribution_linear_y(*m_generator_ptr);
-    auto dz = distribution_linear_z(*m_generator_ptr);
+    // apply motion noise
+    const float dx = distribution_linear_x(*m_generator_ptr);
+    const float dy = distribution_linear_y(*m_generator_ptr);
+    const float dz = distribution_linear_z(*m_generator_ptr);
 
-    auto roll  = distribution_roll(*m_generator_ptr);
-    auto pitch = distribution_pitch(*m_generator_ptr);
-    auto yaw   = distribution_yaw(*m_generator_ptr);
+    const float roll  = distribution_roll(*m_generator_ptr);
+    const float pitch = distribution_pitch(*m_generator_ptr);
+    const float yaw   = distribution_yaw(*m_generator_ptr);
 
     FLOAT_T sin_roll  = sin(roll);
     FLOAT_T cos_roll  = cos(roll);  
@@ -256,11 +272,9 @@ void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
     tf_odom[10] = cos_roll * cos_pitch;
     tf_odom[11] = dz;
 
-
-
-    auto alpha = last_pose[3];
-    auto beta = last_pose[4];
-    auto gamma = last_pose[5];
+    const float alpha = last_pose[3];
+    const float beta = last_pose[4];
+    const float gamma = last_pose[5];
 
 
     FLOAT_T sin_alpha = sin(alpha);
@@ -334,6 +348,7 @@ void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
   }
 
   m_particles = new_particles;
+  m_last_time = current_time;
 }
 
 void ParticleCloud::motionUpdate(const ImuAccumulator::Data& imu_data)
