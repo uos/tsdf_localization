@@ -155,7 +155,7 @@ bool ParticleCloud::isInitialized() const
 
 void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
 {
-  std::cout << "MOTION UPDATE:" << std::endl;
+  // std::cout << "MOTION UPDATE:" << std::endl;
   std::vector<Particle> new_particles(m_particles.size());
 
   // std::normal_distribution<> distribution_linear_x{0, 5 * sqrt(odom.twist.covariance[0])};
@@ -181,26 +181,17 @@ void ParticleCloud::motionUpdate(const nav_msgs::msg::Odometry& odom)
   
   FLOAT_T time_diff = (current_time - m_last_time).seconds();
   
-  std::cout << "- time delta: " << time_diff << "s" << std::endl;
-
-  
-
-  // auto ref_dist = std::sqrt(ref_pose[0] * ref_pose[0] + ref_pose[1] * ref_pose[1] + ref_pose[2] * ref_pose[2]);
-
-  // const float ref_dist = std::sqrt(x_delta * x_delta + y_delta * y_delta);
-
-  // std::cout << "- distance delta: " << ref_dist << std::endl;
-
+  // std::cout << "- time delta: " << time_diff << "s" << std::endl;
 
   const float d = linear_velocity * time_diff;
   const float d_square = d * d;
 
-  std::cout << "- distance delta: " << d << "m" << std::endl;
+  // std::cout << "- distance delta: " << d << "m" << std::endl;
 
   const float theta = angular_velocity * time_diff;
   const float theta_square = theta * theta;
 
-  std::cout << "- angle delta: " << theta << std::endl;
+  // std::cout << "- angle delta: " << theta << std::endl;
 
   const float x_delta = d * cos(ref_pose[5] + (theta / 2.0));
   const float y_delta = d * sin(ref_pose[5] + (theta / 2.0));

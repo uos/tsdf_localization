@@ -242,10 +242,8 @@ public:
 
     tsdf_evaluator_ptr_.reset();
 
-    std::cout << "Finished mcl 3d!" << std::endl;
+    std::cout << "Finished TSDF MCL!" << std::endl;
   }
-
-
 
   void getParameters()
   {
