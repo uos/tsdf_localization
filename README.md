@@ -1,4 +1,4 @@
-# 6D Monte Carlo Localization (MCL) in TSDF maps - ROS Package
+# 6D Monte Carlo Localization (MCL) in TSDF maps - ROS 2 Package
 
 This package consists of several nodes and tools to perform a 6D Monte Carlo localization of robots equipped with a 3D LiDAR in 3D TSDF maps.
 The sensor update is massively accelerated by a GPU-based implementation, but can also be executed on the CPU.
