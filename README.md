@@ -1,32 +1,32 @@
-# TSDF-based 3D Monte Carlo Localization ROS Package
+# 6D Monte Carlo Localization (MCL) in TSDF maps - ROS Package
 
-This package consists of several nodes and tools to perform a 6D Monte Carlo Localization of robots equipped with a 3D LiDAR in 3D TSDF maps.
+This package consists of several nodes and tools to perform a 6D Monte Carlo localization of robots equipped with a 3D LiDAR in 3D TSDF maps.
 The sensor update is massively accelerated by a GPU-based implementation, but can also be executed on the CPU.
 
 [![Demo GIF](doc/tsdf_loc_teaser.gif)](https://github.com/uos/tsdf_localization_demo.git)
 
 ## Prerequisites
-* ROS Noetic (*ros-noetic-desktop-full*)
-* ROS packages: See `package.xml`
+* ROS 2 (see branches)
+* ROS 2 packages: See `package.xml`
 * OpenMP (for CPU acceleration)
 * CUDA (optional, recommended for acceleration)
 
 ## Installation
 
-1. Clone this repository into your ROS workspace
+1. Clone this repository into your ROS 2 workspace
 ```console
-$ git clone --recursive https://github.com/uos/tsdf_localization.git
+git clone --recursive https://github.com/uos/tsdf_localization.git
 ```
 2. Make sure have also installed the required external packages or also cloned them into the local ROS workspace
 
 3. Build the ROS workspace
 ```console
-$ catkin build
+colcon build
 ```
 
 ## Demo
 
-A quick startup including how to use tsdf_localization within your package is shown here: https://github.com/uos/tsdf_localization_demo.git
+A quick startup including how to use tsdf_localization within your package is shown here: https://github.com/uos/tsdf_localization_demo.git 
 
 ## Citation
 
@@ -60,9 +60,9 @@ The paper is available on [World Scientific](https://www.worldscientific.com/doi
 
 ## Nodes
 
-### mcl_3d
+### tsdf_mcl
 
-Starts MCL in a given TSDF map.
+Starts 6D MCL in a given TSDF map.
 
 #### Subscribed Topics:
 
@@ -85,7 +85,6 @@ Odometry message for motion update.
 Start global localization:
 
 `/global_localization`
-
 
 ## Contributions
 
